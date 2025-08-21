@@ -159,7 +159,7 @@ export class LeakSensor extends deviceBase {
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Humidity Sensor Service Not Found`)
       }
-    } else if (device.indoorHumidity) {
+    } else {
       this.debugLog(`${device.deviceClass} ${accessory.displayName} Add Humidity Sensor Service`)
       accessory.context.HumiditySensor = accessory.context.HumiditySensor ?? {}
       this.HumiditySensor = {
@@ -181,8 +181,6 @@ export class LeakSensor extends deviceBase {
         .onGet(() => {
           return this.HumiditySensor!.CurrentRelativeHumidity
         })
-    } else {
-      this.debugLog(`${device.deviceClass} ${accessory.displayName} Humidity Sensor Service Not Added`)
     }
 
     // Intial Refresh
