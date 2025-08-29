@@ -4,6 +4,29 @@ The Homebridge Resideo plugin is a TypeScript-based Homebridge plugin that integ
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
+## Branching and Release Strategy
+
+### Beta Branch Targeting
+**IMPORTANT**: All pull requests must be directed at a branch that starts with "beta-" first, never directly to the main/latest branch.
+
+#### Branch Creation Rules
+- If no appropriate beta branch exists, create one based on the semantic versioning type:
+  - **patch** (bug fixes): Create `beta-X.Y.Z+1` (e.g., `beta-3.0.3` from current `3.0.2`)
+  - **minor** (new features): Create `beta-X.Y+1.0` (e.g., `beta-3.1.0` from current `3.0.2`) 
+  - **major** (breaking changes): Create `beta-X+1.0.0` (e.g., `beta-4.0.0` from current `3.0.2`)
+
+#### Required Labels
+Before assigning any issue to Copilot, the following labels **must** be set to determine the change type:
+- `patch` - for bug fixes and small improvements (no API changes)
+- `minor` - for new features (backward compatible API additions)
+- `major` - for breaking changes (incompatible API changes)
+
+#### Workflow
+1. Check issue has required semantic versioning label (`patch`, `minor`, or `major`)
+2. Identify or create appropriate beta branch based on the label
+3. Target all work to the beta branch, not main/latest
+4. Beta branches will be merged to main/latest after testing and validation
+
 ## Working Effectively
 
 ### Environment Setup
