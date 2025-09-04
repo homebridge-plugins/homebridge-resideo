@@ -133,6 +133,76 @@
                         "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
                       }
                     },
+                    "fan_mode_mapping": {
+                      "title": "Fan Mode Mapping (Simplify Fan Controls)",
+                      "type": "object",
+                      "description": "Customize which Resideo fan modes are used for HomeKit fan controls. This allows simplified on/off fan control for easier Siri voice commands.",
+                      "properties": {
+                        "auto_mode": {
+                          "title": "Auto Mode",
+                          "type": "string",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to AUTO",
+                          "default": "Auto",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        },
+                        "on_mode": {
+                          "title": "Manual On Mode",
+                          "type": "string",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and ACTIVE (on)",
+                          "default": "On",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        },
+                        "off_mode": {
+                          "title": "Manual Off Mode",
+                          "type": "string",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and INACTIVE (off)",
+                          "default": "Circulate",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        }
+                      },
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && !model.options.devices[arrayIndices].thermostat?.hide_fan);"
+                      }
+                    },
                     "statefulStatus": {
                       "title": "Enable Stateful Programmable Switch (Only Works in 3rd Party Home Apps) for Automations on NoHold, TemporaryHold, PermanentHold",
                       "type": "boolean",
@@ -529,6 +599,18 @@
             "options.devices[].thermostat.show_auto",
             "options.devices[].thermostat.hide_fan",
             "options.devices[].thermostat.hide_humidity",
+            {
+              "key": "options.devices[].thermostat.fan_mode_mapping",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": false,
+              "title": "Fan Mode Mapping Settings",
+              "items": [
+                "options.devices[].thermostat.fan_mode_mapping.auto_mode",
+                "options.devices[].thermostat.fan_mode_mapping.on_mode",
+                "options.devices[].thermostat.fan_mode_mapping.off_mode"
+              ]
+            },
             "options.devices[].thermostat.thermostatSetpointStatus",
             "options.devices[].leaksensor.hide_leak",
             "options.devices[].leaksensor.hide_temperature",

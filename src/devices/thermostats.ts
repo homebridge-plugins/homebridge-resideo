@@ -994,23 +994,29 @@ export class Thermostats extends deviceBase {
     if (this.device.settings?.fan && !this.device.thermostat?.hide_fan) {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} TargetFanState: ${this.Fan?.TargetFanState}, Active: ${this.Fan?.Active}`)
 
+      // Get fan mode mapping configuration, use defaults if not configured
+      const fanMapping = this.device.thermostat?.fan_mode_mapping
+      const autoMode = fanMapping?.auto_mode || 'Auto'
+      const onMode = fanMapping?.on_mode || 'On'
+      const offMode = fanMapping?.off_mode || 'Circulate'
+
       if (this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO) {
         payload = {
-          mode: 'Auto',
+          mode: autoMode,
         }
       } else if (
         this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.MANUAL
         && this.Fan?.Active === this.hap.Characteristic.Active.ACTIVE
       ) {
         payload = {
-          mode: 'On',
+          mode: onMode,
         }
       } else if (
         this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.MANUAL
         && this.Fan?.Active === this.hap.Characteristic.Active.INACTIVE
       ) {
         payload = {
-          mode: 'Circulate',
+          mode: offMode,
         }
       }
 

@@ -87,8 +87,15 @@ export interface thermostat {
   hide_humidity?: boolean
   thermostatSetpointStatus?: string
   statefulStatus?: boolean
+  fan_mode_mapping?: fanModeMapping
   roomsensor?: roomsensor
   roompriority?: roompriority
+}
+
+export interface fanModeMapping {
+  auto_mode?: 'Auto' | 'On' | 'Circulate'
+  on_mode?: 'Auto' | 'On' | 'Circulate'
+  off_mode?: 'Auto' | 'On' | 'Circulate'
 }
 
 export interface leaksensor {
