@@ -136,12 +136,12 @@
                     "fan_mode_mapping": {
                       "title": "Fan Mode Mapping (Simplify Fan Controls)",
                       "type": "object",
-                      "description": "Customize which Resideo fan modes are used for HomeKit fan controls. This allows simplified on/off fan control for easier Siri voice commands.",
+                      "description": "Customize which Resideo fan modes are used for HomeKit fan controls. This allows simplified on/off fan control for easier Siri voice commands like 'Turn on the fan' without needing to access sub-menus in iOS. Example: Set 'Manual On Mode' to 'On' and 'Manual Off Mode' to 'Auto' to enable simple on/off control with Siri.",
                       "properties": {
                         "auto_mode": {
                           "title": "Auto Mode",
                           "type": "string",
-                          "description": "Resideo fan mode to use when HomeKit fan is set to AUTO",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to AUTO. Default: 'Auto'",
                           "default": "Auto",
                           "oneOf": [
                             {
@@ -161,7 +161,7 @@
                         "on_mode": {
                           "title": "Manual On Mode",
                           "type": "string",
-                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and ACTIVE (on)",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and ACTIVE (when you turn the fan 'on'). Default: 'On'. For simplified control, you might set this to 'On' or 'Circulate'.",
                           "default": "On",
                           "oneOf": [
                             {
@@ -181,7 +181,7 @@
                         "off_mode": {
                           "title": "Manual Off Mode",
                           "type": "string",
-                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and INACTIVE (off)",
+                          "description": "Resideo fan mode to use when HomeKit fan is set to MANUAL and INACTIVE (when you turn the fan 'off'). Default: 'Circulate'. For simplified control, you might set this to 'Auto' to return to automatic operation.",
                           "default": "Circulate",
                           "oneOf": [
                             {
