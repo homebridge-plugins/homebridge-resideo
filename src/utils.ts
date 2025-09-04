@@ -16,6 +16,23 @@ export function toCelsius(value: number, unit: number): number {
 }
 
 /**
+ * Converts the value to celsius with manual unit override
+ */
+export function toCelsiusWithOverride(value: number, unit: number, convertUnits?: string): number {
+  // Handle manual override
+  if (convertUnits === 'fahrenheit') {
+    // Force conversion from Fahrenheit to Celsius
+    return Math.round((5 / 9) * (value - 32) * 2) / 2
+  } else if (convertUnits === 'celsius') {
+    // Force no conversion - value is already in Celsius
+    return value
+  }
+  
+  // Use default logic based on unit parameter
+  return toCelsius(value, unit)
+}
+
+/**
  * Converts the value to fahrenheit if the temperature units are in Fahrenheit
  */
 export function toFahrenheit(value: number, unit: number): number {

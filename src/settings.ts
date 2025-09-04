@@ -59,6 +59,7 @@ export interface options {
   refreshRate?: number
   updateRate?: number
   pushRate?: number
+  convertUnits?: string
   devices?: devicesConfig[]
 }
 

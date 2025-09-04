@@ -483,6 +483,26 @@
             "title": "Allow Invalid Characters",
             "type": "boolean",
             "description": "If true, invalid characters will be allowed in the device name."
+          },
+          "convertUnits": {
+            "title": "Force Temperature Unit Conversion",
+            "type": "string",
+            "default": "",
+            "oneOf": [
+              {
+                "title": "Auto (Use API Units)",
+                "enum": [""]
+              },
+              {
+                "title": "Force Fahrenheit to Celsius",
+                "enum": ["fahrenheit"]
+              },
+              {
+                "title": "Force Celsius (No Conversion)",
+                "enum": ["celsius"]
+              }
+            ],
+            "description": "Override automatic unit detection. Use 'fahrenheit' if API returns Fahrenheit values that need conversion to Celsius, or 'celsius' if API values are already in Celsius."
           }
         },
         "required": ["logging"]
