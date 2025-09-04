@@ -87,7 +87,6 @@ export interface thermostat {
   hide_humidity?: boolean
   thermostatSetpointStatus?: string
   statefulStatus?: boolean
-  hide_hold_switch?: boolean
   roomsensor?: roomsensor
   roompriority?: roompriority
 }

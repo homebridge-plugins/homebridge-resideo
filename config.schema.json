@@ -529,6 +529,7 @@
             "options.devices[].thermostat.show_auto",
             "options.devices[].thermostat.hide_fan",
             "options.devices[].thermostat.hide_humidity",
+            "options.devices[].thermostat.statefulStatus",
             "options.devices[].thermostat.thermostatSetpointStatus",
             "options.devices[].leaksensor.hide_leak",
             "options.devices[].leaksensor.hide_temperature",

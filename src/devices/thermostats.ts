@@ -282,7 +282,7 @@ export class Thermostats extends deviceBase {
     }
 
     // Initialize StatefulProgrammableSwitch property (Hold Switch)
-    if (!device.thermostat?.hide_hold_switch) {
+    if (device.thermostat?.statefulStatus) {
       this.debugLog(`${device.deviceClass} ${accessory.displayName} Add Hold Switch Service`)
       accessory.context.StatefulProgrammableSwitch = accessory.context.StatefulProgrammableSwitch ?? {}
       this.StatefulProgrammableSwitch = {
@@ -315,7 +315,7 @@ export class Thermostats extends deviceBase {
         this.StatefulProgrammableSwitch.Service = accessory.getService(this.hap.Service.StatefulProgrammableSwitch) as Service
         accessory.removeService(this.StatefulProgrammableSwitch.Service)
       } else {
-        this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Hold Switch Service Not Found`)
+        this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Hold Switch Service Not Added`)
       }
     }
 
