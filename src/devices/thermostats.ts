@@ -994,9 +994,19 @@ export class Thermostats extends deviceBase {
     if (this.device.settings?.fan && !this.device.thermostat?.hide_fan) {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} TargetFanState: ${this.Fan?.TargetFanState}, Active: ${this.Fan?.Active}`)
 
-      if (this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO) {
+      if (
+        this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO
+        && this.Fan?.Active === this.hap.Characteristic.Active.INACTIVE
+      ) {
         payload = {
           mode: 'Auto',
+        }
+      } else if (
+        this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO
+        && this.Fan?.Active === this.hap.Characteristic.Active.ACTIVE
+      ) {
+        payload = {
+          mode: 'On',
         }
       } else if (
         this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.MANUAL
