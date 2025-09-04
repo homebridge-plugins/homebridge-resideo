@@ -215,7 +215,7 @@ export class RoomSensors extends deviceBase {
     // Set Temperature Sensor State
     if (!this.device.thermostat?.roomsensor?.hide_temperature) {
       if (this.TemperatureSensor) {
-        this.TemperatureSensor.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, this.hap.Characteristic.TemperatureDisplayUnits.CELSIUS)
+        this.TemperatureSensor.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, 1)
         this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.accessory.displayName} CurrentTemperature: ${this.TemperatureSensor.CurrentTemperature}°c`)
       }
     }

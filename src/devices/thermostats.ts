@@ -442,8 +442,8 @@ export class Thermostats extends deviceBase {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TemperatureDisplayUnits: ${this.hap.Characteristic.TemperatureDisplayUnits.CELSIUS}`)
     }
 
-    this.Thermostat.CurrentTemperature = toCelsius(this.device.indoorTemperature!, Number(this.Thermostat.TemperatureDisplayUnits))
-    this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CurrentTemperature: ${toCelsius(this.device.indoorTemperature!, Number(this.Thermostat.TemperatureDisplayUnits))}`)
+    this.Thermostat.CurrentTemperature = toCelsius(this.device.indoorTemperature!, 1)
+    this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CurrentTemperature: ${toCelsius(this.device.indoorTemperature!, 1)}`)
 
     if (this.device.indoorHumidity) {
       if (this.HumiditySensor) {

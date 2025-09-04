@@ -339,7 +339,7 @@ export class RoomSensorThermostat extends deviceBase {
       const accessoryValue = this.sensorAccessory.accessoryValue as accessoryValue
         ?? { indoorTemperature: 20, indoorHumidity: 50 }
 
-      this.Thermostat.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, 1)
       this.debugLog(`${this.sensorAccessory.accessoryAttribute.type} ${this.device.deviceClass} ${this.accessory.displayName} CurrentTemperature: ${this.Thermostat.CurrentTemperature}`)
 
       if (!this.device.thermostat?.hide_humidity && accessoryValue.indoorHumidity) {

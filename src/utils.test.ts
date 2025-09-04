@@ -10,7 +10,7 @@ describe('toCelsius', () => {
   it('should convert Fahrenheit to Celsius correctly', () => {
     expect(toCelsius(32, 1)).toBe(0) // 32°F is 0°C
     expect(toCelsius(68, 1)).toBe(20) // 68°F is 20°C
-    expect(toCelsius(100, 1)).toBe(37.5) // 100°F is 37.5°C
+    expect(toCelsius(100, 1)).toBe(38) // 100°F is 38°C (37.78°C rounded to nearest 0.5)
   })
 
   it('should round to the nearest 0.5 degree', () => {
