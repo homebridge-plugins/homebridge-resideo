@@ -369,6 +369,40 @@
                     }
                   }
                 },
+                "smokesensor": {
+                  "title": "Smoke Sensor",
+                  "type": "object",
+                  "properties": {
+                    "hide_smoke": {
+                      "title": "Hide Smoke Service",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'SmokeDetector' && model.options.devices[arrayIndices].deviceID);"
+                      }
+                    },
+                    "hide_carbonmonoxide": {
+                      "title": "Hide Carbon Monoxide Service",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'SmokeDetector' && model.options.devices[arrayIndices].deviceID);"
+                      }
+                    },
+                    "hide_temperature": {
+                      "title": "Hide Temperature Service",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'SmokeDetector' && model.options.devices[arrayIndices].deviceID);"
+                      }
+                    },
+                    "hide_humidity": {
+                      "title": "Hide Humidity Service",
+                      "type": "boolean",
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'SmokeDetector' && model.options.devices[arrayIndices].deviceID);"
+                      }
+                    }
+                  }
+                },
                 "retry": {
                   "title": "Retry",
                   "type": "boolean",
@@ -533,6 +567,10 @@
             "options.devices[].leaksensor.hide_leak",
             "options.devices[].leaksensor.hide_temperature",
             "options.devices[].leaksensor.hide_humidity",
+            "options.devices[].smokesensor.hide_smoke",
+            "options.devices[].smokesensor.hide_carbonmonoxide",
+            "options.devices[].smokesensor.hide_temperature",
+            "options.devices[].smokesensor.hide_humidity",
             {
               "key": "options.devices[].thermostat.roompriority",
               "type": "fieldset",

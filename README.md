@@ -65,3 +65,4 @@ plugin allows you to access your Resideo Device(s) from HomeKit with
 - Some Total Comfort Control Thermostats
   - Pushing Commands may not be supported on some.
 - [WiFi Water Leak & Freeze Detector](https://www.resideo.com/us/en/products/water/spot-leak-detection/wifi-water-leak-freeze-detector-rchw3610wf1001-u/)
+- [SC5 Smart Smoke/CO2 Detectors](https://www.resideo.com/us/en/products/safety/) - New feature addition for smoke and carbon monoxide detection

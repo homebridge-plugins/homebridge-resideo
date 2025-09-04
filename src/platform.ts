@@ -27,6 +27,7 @@ import axios from 'axios'
 import { LeakSensor } from './devices/leaksensors.js'
 import { RoomSensors } from './devices/roomsensors.js'
 import { RoomSensorThermostat } from './devices/roomsensorthermostats.js'
+import { SmokeSensor } from './devices/smokesensors.js'
 import { Thermostats } from './devices/thermostats.js'
 import { Valve } from './devices/valve.js'
 import {
@@ -359,6 +360,10 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         this.debugLog(`Discovered ${device.userDefinedDeviceName} ${device.deviceClass} @ ${location.name}`)
         this.createLeak(location, device)
         break
+      case 'SmokeDetector':
+        this.debugLog(`Discovered ${device.userDefinedDeviceName} ${device.deviceClass} @ ${location.name}`)
+        this.createSmoke(location, device)
+        break
       case 'Thermostat':
         this.debugLog(`Discovered ${device.userDefinedDeviceName} ${device.deviceClass} (${device.deviceModel}) @ ${location.name}`)
         await this.createThermostat(location, device)
@@ -533,6 +538,47 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     }
   }
 
+  private async createSmoke(location: location, device: resideoDevice & devicesConfig) {
+    const uuid = this.api.hap.uuid.generate(`${device.deviceID}-${device.deviceClass}`)
+
+    const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid)
+
+    if (existingAccessory) {
+      if (await this.registerDevice(device)) {
+        this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName} DeviceID: ${device.deviceID}`)
+        existingAccessory.displayName = device.configDeviceName
+          ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
+          : await this.validateAndCleanDisplayName(device.userDefinedDeviceName, 'userDefinedDeviceName', device.userDefinedDeviceName)
+        existingAccessory.context.deviceID = device.deviceID
+        existingAccessory.context.model = device.deviceClass
+        this.smokesensorFirmwareExistingAccessory(device, existingAccessory)
+        this.api.updatePlatformAccessories([existingAccessory])
+        new SmokeSensor(this, existingAccessory, location, device)
+        this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`)
+      } else {
+        this.unregisterPlatformAccessories(existingAccessory)
+      }
+    } else if (await this.registerDevice(device)) {
+      if (!device.external) {
+        this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`)
+      }
+      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid)
+      accessory.displayName = device.configDeviceName
+        ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
+        : await this.validateAndCleanDisplayName(device.userDefinedDeviceName, 'userDefinedDeviceName', device.userDefinedDeviceName)
+      accessory.context.device = device
+      accessory.context.deviceID = device.deviceID
+      accessory.context.model = device.deviceClass
+      this.smokesensorFirmwareNewAccessory(device, accessory)
+      new SmokeSensor(this, accessory, location, device)
+      this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`)
+      this.externalOrPlatform(device, accessory)
+      this.accessories.push(accessory)
+    } else {
+      this.debugErrorLog(`Unable to Register new device: ${device.userDefinedDeviceName} ${device.deviceType} DeviceID: ${device.deviceID}, Check Config to see if DeviceID is being Hidden.`)
+    }
+  }
+
   private async createRoomSensors(location: location, device: resideoDevice & devicesConfig, group: T9groups, sensorAccessory: sensorAccessory) {
     const uuid = this.api.hap.uuid.generate(`${sensorAccessory.accessoryAttribute.type}-${sensorAccessory.accessoryAttribute.serialNumber}-RoomSensor`)
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid)
@@ -660,6 +706,22 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   }
 
   private valveFirmwareExistingAccessory(device: resideoDevice & devicesConfig, existingAccessory: PlatformAccessory) {
+    if (device.firmware) {
+      existingAccessory.context.firmwareRevision = device.firmware
+    } else {
+      existingAccessory.context.firmwareRevision = this.version
+    }
+  }
+
+  private smokesensorFirmwareNewAccessory(device: resideoDevice & devicesConfig, accessory: PlatformAccessory) {
+    if (device.firmware) {
+      accessory.context.firmwareRevision = device.firmware
+    } else {
+      accessory.context.firmwareRevision = this.version
+    }
+  }
+
+  private smokesensorFirmwareExistingAccessory(device: resideoDevice & devicesConfig, existingAccessory: PlatformAccessory) {
     if (device.firmware) {
       existingAccessory.context.firmwareRevision = device.firmware
     } else {
