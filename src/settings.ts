@@ -87,6 +87,7 @@ export interface thermostat {
   hide_humidity?: boolean
   thermostatSetpointStatus?: string
   statefulStatus?: boolean
+  hide_hold_switch?: boolean
   roomsensor?: roomsensor
   roompriority?: roompriority
 }
@@ -249,6 +250,7 @@ export interface ChangeableValues {
   heatSetpoint: number
   coolSetpoint: number
   thermostatSetpointStatus?: string
+  holdUntil?: string
   nextPeriodTime?: string
   endHeatSetpoint?: number
   endCoolSetpoint?: number
