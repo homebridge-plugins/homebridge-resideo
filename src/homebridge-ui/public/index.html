@@ -323,7 +323,7 @@
                   showApiDeviceInfo = deviceData => {
                      homebridge.showSpinner()
                      const device = JSON.parse(deviceData)
-                     document.getElementById('displayName').innerHTML = device.userDefinedDeviceName || device.name || 'Unknown Device'
+                     document.getElementById('displayName').textContent = device.userDefinedDeviceName || device.name || 'Unknown Device'
                      document.getElementById('deviceID').innerHTML = device.deviceID || 'N/A'
                      document.getElementById('model').innerHTML = device.deviceModel || device.deviceType || 'N/A'
                      document.getElementById('firmwareRevision').innerHTML = device.deviceSettings?.firmware || 'N/A'
