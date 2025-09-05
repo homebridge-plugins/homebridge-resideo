@@ -89,10 +89,12 @@ export class Valve extends deviceBase {
   }
 
   async parseStatus(device: resideoDevice & devicesConfig): Promise<void> {
-    this.Valve.Active = device.isAlive ? this.hap.Characteristic.Active.ACTIVE : this.hap.Characteristic.Active.INACTIVE
+    // For valves, Active should be based on valve status, not just device alive status
+    const isValveOpen = device.actuatorValve?.valveStatus === 'Open'
+    this.Valve.Active = isValveOpen ? this.hap.Characteristic.Active.ACTIVE : this.hap.Characteristic.Active.INACTIVE
     this.accessory.context.Active = this.Valve.Active
 
-    this.Valve.InUse = device.actuatorValve.valveStatus === 'Open' ? this.hap.Characteristic.InUse.IN_USE : this.hap.Characteristic.InUse.NOT_IN_USE
+    this.Valve.InUse = isValveOpen ? this.hap.Characteristic.InUse.IN_USE : this.hap.Characteristic.InUse.NOT_IN_USE
     if (this.Valve.InUse !== this.accessory.context.InUse) {
       this.successLog(`${this.device.deviceClass} ${this.accessory.displayName} (refreshStatus) device: ${JSON.stringify(device)}`)
       this.accessory.context.InUse = this.Valve.InUse
@@ -102,7 +104,7 @@ export class Valve extends deviceBase {
   async refreshStatus(): Promise<void> {
     try {
       const device: any = (
-        await this.platform.axios.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
+        await this.platform.axios.get(`${DeviceURL}/shutoffvalves/${this.device.deviceID}`, {
           params: {
             locationId: this.location.locationID,
           },
@@ -133,7 +135,7 @@ export class Valve extends deviceBase {
         state: this.Valve.Active === this.hap.Characteristic.Active.ACTIVE ? 'open' : 'closed',
       }
 
-      await this.platform.axios.post(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, payload, {
+      await this.platform.axios.post(`${DeviceURL}/shutoffvalves/${this.device.deviceID}`, payload, {
         params: {
           locationId: this.location.locationID,
         },
