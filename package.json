@@ -87,7 +87,7 @@
     "eslint-plugin-format": "^1.0.1",
     "eslint-plugin-import": "^2.32.0",
     "homebridge": "^1.11.0",
-    "homebridge-config-ui": "5.0.0",
+    "homebridge-config-ui-x": "5.5.0",
     "nodemon": "^3.1.10",
     "shx": "^0.4.0",
     "ts-node": "^10.9.2",
