@@ -36,6 +36,19 @@ interface Config {
   credentials?: Credentials
 }
 
+interface Credentials {
+  accessToken?: string
+  refreshToken?: string
+  consumerKey?: string
+  consumerSecret?: string
+}
+
+interface Config {
+  platform: string
+  name: string
+  credentials?: Credentials
+}
+
 export class PluginUiServer extends HomebridgePluginUiServer {
   public key!: string
   public secret!: string

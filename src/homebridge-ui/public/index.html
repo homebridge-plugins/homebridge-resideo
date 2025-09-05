@@ -41,7 +41,7 @@
    <button type="button" class="btn btn-primary" id="menuSettings">
       Settings
    </button>
-   <button type="button" class="btn btn-primary" id="menuDevices">
+   <button type="button" class="btn btn-primary" id="menuFeatureOptions">
       Devices
    </button>
    <button type="button" class="btn btn-primary mr-0" id="menuHome">
@@ -261,12 +261,9 @@
          onStart: () => {
             // Initialize first run form
             const currentConfig = homebridge.getPluginConfig();
-            if (Array.isArray(currentConfig) && currentConfig.length > 0 && currentConfig[0].credentials) {
+            if (currentConfig[0]?.credentials) {
                document.getElementById('firstRunKey').value = currentConfig[0].credentials.consumerKey || '';
                document.getElementById('firstRunSecret').value = currentConfig[0].credentials.consumerSecret || '';
-            } else {
-               document.getElementById('firstRunKey').value = '';
-               document.getElementById('firstRunSecret').value = '';
             }
             return true;
          },
@@ -389,19 +386,6 @@
             'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
          );
       };
-
-      // Initialize legacy components if needed for backwards compatibility
-      if (!ui.featureOptions.isRequired()) {
-         setupLegacyMenus();
-      }
-   };
-
-   const setupLegacyMenus = () => {
-      // Legacy menu functionality for account, devices, support
-      document.getElementById('menuAccount')?.addEventListener('click', () => showAccount());
-      document.getElementById('menuDevices')?.addEventListener('click', () => showDevices());
-      document.getElementById('menuHome')?.addEventListener('click', () => showSupport());
-      document.getElementById('menuSettings')?.addEventListener('click', () => showSettings());
    };
 
    // Show the webUI
