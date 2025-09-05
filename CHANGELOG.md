@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-01-14)
+
+### What's Changes
+- Added hold switch functionality for thermostats to remove holds and return to schedule
+- Implemented StatefulProgrammableSwitch that allows users to remove thermostat holds via HomeKit scenes and automation
+- Switch state reflects current hold status (OFF for active hold, ON for following schedule)  
+- Uses existing `statefulStatus` configuration option for backward compatibility
+- Enhances thermostat control similar to functionality available in other smart thermostat integrations
+- Fixes [#798](https://github.com/homebridge-plugins/homebridge-resideo/issues/798)
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0
+
 ## [3.0.2](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.2) (2025-03-04)
 
 # *No New Releases During Lent*
