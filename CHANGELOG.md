@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-09-05)
+
+### What's Changes
+- Fix incorrect server references in Internal Server Error messages ([#799](https://github.com/homebridge-plugins/homebridge-resideo/issues/799))
+  - Corrected error messages that incorrectly referenced "SmartThings servers" and "Meater Server" to properly reference "Resideo servers/Server"
+  - No functional changes to error handling logic, only corrected the messaging text
+- Added hold switch functionality for thermostats to remove holds and return to schedule
+- Implemented StatefulProgrammableSwitch that allows users to remove thermostat holds via HomeKit scenes and automation
+- Switch state reflects current hold status (OFF for active hold, ON for following schedule)  
+- Uses existing `statefulStatus` configuration option for backward compatibility
+- Enhances thermostat control similar to functionality available in other smart thermostat integrations
+- Fixes [#798](https://github.com/homebridge-plugins/homebridge-resideo/issues/798)
+- Added device discovery feature to help users find device IDs for configuration.
+  - New `/getAvailableDevices` endpoint in configuration UI that fetches all devices from Resideo API
+  - Enhanced DEVICES tab with "Available Devices from Resideo" section showing all devices in user's account
+  - Displays device information including Device ID, name, class, model, location, and online status
+  - Helps users find device IDs for devices that were reset or newly added to their Resideo account
+  - Fixes issue where devices disappeared from cached accessories list after being reset
+- Fix L5 Water Shutoff valve API endpoints to use correct Resideo shutoffvalve endpoints and status parsing, resolves [#887](https://github.com/homebridge-plugins/homebridge-resideo/issues/887) & [#785](https://github.com/homebridge-plugins/homebridge-resideo/issues/785)
+  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalve/{deviceID}` for status retrieval
+  - Updated valve control API from POST `/waterLeakDetectors/{deviceID}` to PUT `/shutoffvalve/{deviceID}/control`
+  - Ensures proper communication with Resideo's shutoff valve API for accurate device control and status updates
+  - Fixed valve status parsing to use `actuatorValve.valveStatus` instead of just device alive status
+  - Valve state now correctly reflects actual device open/closed status
+- Housekeeping and updated dependencies.
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0
+
 ## [3.0.2](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.2) (2025-03-04)
 
 # *No New Releases During Lent*
