@@ -767,7 +767,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       this.debugLog('The client has exceeded the number of requests allowed for a given time window.')
     } else if (e.message.includes('500')) {
       this.errorLog(`Failed to ${this.action}: Internal Server Error`)
-      this.debugLog('An unexpected error on the SmartThings servers has occurred. These errors should be rare.')
+      this.debugLog('An unexpected error on the Resideo servers has occurred. These errors should be rare.')
     } else {
       this.errorLog(`Failed to ${this.action}`)
     }
@@ -792,7 +792,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         this.errorLog(`Too Many Requests, statusCode: ${statusCode}, Action: ${action}`)
         break
       case 500:
-        this.errorLog(`Internal Server Error (Meater Server), statusCode: ${statusCode}, Action: ${action}`)
+        this.errorLog(`Internal Server Error (Resideo Server), statusCode: ${statusCode}, Action: ${action}`)
         break
       default:
         this.infoLog(`Unknown statusCode: ${statusCode}, Report Bugs Here: https://bit.ly/homebridge-resideo-bug-report. Action: ${action}`)

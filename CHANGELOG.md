@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file. This projec
 ## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-09-05)
 
 ### What's Changes
+- Fix incorrect server references in Internal Server Error messages ([#799](https://github.com/homebridge-plugins/homebridge-resideo/issues/799))
+  - Corrected error messages that incorrectly referenced "SmartThings servers" and "Meater Server" to properly reference "Resideo servers/Server"
+  - No functional changes to error handling logic, only corrected the messaging text
 - Added hold switch functionality for thermostats to remove holds and return to schedule
 - Implemented StatefulProgrammableSwitch that allows users to remove thermostat holds via HomeKit scenes and automation
 - Switch state reflects current hold status (OFF for active hold, ON for following schedule)  
