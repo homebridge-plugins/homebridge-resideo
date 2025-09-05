@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.0.3](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.3) (TBD)
+
+### What's Changes
+- Fixed L5 Water Shutoff API endpoints and status parsing, resolves [#785](https://github.com/homebridge-plugins/homebridge-resideo/issues/785)
+  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalves/{deviceID}`
+  - Fixed valve status parsing to use `actuatorValve.valveStatus` instead of just device alive status
+  - Valve state now correctly reflects actual device open/closed status
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.0.3
+
 ## [3.0.2](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.2) (2025-03-04)
 
 # *No New Releases During Lent*

@@ -20,9 +20,9 @@ dependencies:
     - any-glob-to-any-file: 'package.json'
     - any-glob-to-any-file: 'package-lock.json'
 
-# Add 'beta' label to any PR that is opened against the `beta` branch
+# Add 'beta' label to any PR that is opened against a beta branch (beta-X.Y.Z format)
 beta:
-- base-branch: 'beta*'
+- base-branch: 'beta-*'
 
 # Add 'alpha' label to any PR that is opened against the `alpha` branch
 alpha:
@@ -36,3 +36,14 @@ latest:
 workflow:
 - changed-files:
   - any-glob-to-any-file: .github/**
+
+# Semantic versioning labels for automated release management
+# These labels should be manually applied before assigning issues to Copilot
+patch:
+- any: []  # Manual assignment only
+
+minor:
+- any: []  # Manual assignment only
+
+major:
+- any: []  # Manual assignment only
