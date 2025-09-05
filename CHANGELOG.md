@@ -2,15 +2,22 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [3.0.3](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.3) (TBD)
+## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-01-04)
 
 ### What's Changes
+- Added device discovery feature to help users find device IDs for configuration.
+  - New `/getAvailableDevices` endpoint in configuration UI that fetches all devices from Resideo API
+  - Enhanced DEVICES tab with "Available Devices from Resideo" section showing all devices in user's account
+  - Displays device information including Device ID, name, class, model, location, and online status
+  - Helps users find device IDs for devices that were reset or newly added to their Resideo account
+  - Fixes issue where devices disappeared from cached accessories list after being reset
 - Fixed L5 Water Shutoff API endpoints and status parsing, resolves [#785](https://github.com/homebridge-plugins/homebridge-resideo/issues/785)
   - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalves/{deviceID}`
   - Fixed valve status parsing to use `actuatorValve.valveStatus` instead of just device alive status
   - Valve state now correctly reflects actual device open/closed status
+- Housekeeping and updated dependencies.
 
-**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.0.3
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0
 
 ## [3.0.2](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.2) (2025-03-04)
 
