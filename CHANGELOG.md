@@ -2,16 +2,6 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [3.1.1](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.1) (2025-09-05)
-
-### What's Changes
-- Fix shutoff valve API endpoints to use correct Resideo shutoffvalve endpoints, resolves [#887](https://github.com/homebridge-plugins/homebridge-resideo/issues/887)
-  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalve/{deviceID}` for status retrieval
-  - Updated valve control API from POST `/waterLeakDetectors/{deviceID}` to PUT `/shutoffvalve/{deviceID}/control`
-  - Ensures proper communication with Resideo's shutoff valve API for accurate device control and status updates
-
-**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.1.0...v3.1.1
-
 ## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-09-05)
 
 ### What's Changes
@@ -30,8 +20,10 @@ All notable changes to this project will be documented in this file. This projec
   - Displays device information including Device ID, name, class, model, location, and online status
   - Helps users find device IDs for devices that were reset or newly added to their Resideo account
   - Fixes issue where devices disappeared from cached accessories list after being reset
-- Fixed L5 Water Shutoff API endpoints and status parsing, resolves [#785](https://github.com/homebridge-plugins/homebridge-resideo/issues/785)
-  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalves/{deviceID}`
+- Fix L5 Water Shutoff valve API endpoints to use correct Resideo shutoffvalve endpoints and status parsing, resolves [#887](https://github.com/homebridge-plugins/homebridge-resideo/issues/887) & [#785](https://github.com/homebridge-plugins/homebridge-resideo/issues/785)
+  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalve/{deviceID}` for status retrieval
+  - Updated valve control API from POST `/waterLeakDetectors/{deviceID}` to PUT `/shutoffvalve/{deviceID}/control`
+  - Ensures proper communication with Resideo's shutoff valve API for accurate device control and status updates
   - Fixed valve status parsing to use `actuatorValve.valveStatus` instead of just device alive status
   - Valve state now correctly reflects actual device open/closed status
 - Housekeeping and updated dependencies.
