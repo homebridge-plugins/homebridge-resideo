@@ -208,6 +208,13 @@
 <script type="module">
    import { webUi } from "./lib/webUi.mjs";
 
+   // Helper function to ensure config is always in array format
+   const normalizeConfig = (config) => {
+      if (!config) return [];
+      if (Array.isArray(config)) return config;
+      return [config];
+   };
+
    // Initialize the webUI with homebridge-plugin-utils
    const ui = new webUi({
       featureOptions: {
@@ -230,12 +237,12 @@
       firstRun: {
          isRequired: () => {
             // Check if we need to run first-time setup
-            const currentConfig = homebridge.getPluginConfig();
+            const currentConfig = normalizeConfig(homebridge.getPluginConfig());
             return !currentConfig[0]?.credentials?.consumerKey || !currentConfig[0]?.credentials?.consumerSecret;
          },
          onStart: () => {
             // Initialize first run form
-            const currentConfig = homebridge.getPluginConfig();
+            const currentConfig = normalizeConfig(homebridge.getPluginConfig());
             if (currentConfig[0]?.credentials) {
                document.getElementById('firstRunKey').value = currentConfig[0].credentials.consumerKey || '';
                document.getElementById('firstRunSecret').value = currentConfig[0].credentials.consumerSecret || '';
@@ -255,7 +262,7 @@
 
             try {
                // Test the credentials by attempting to link the account
-               const currentConfig = homebridge.getPluginConfig();
+               const currentConfig = normalizeConfig(homebridge.getPluginConfig());
                if (!currentConfig[0]) {
                   currentConfig.push({ name: 'Resideo' });
                }
@@ -292,7 +299,7 @@
                      if (popup.closed) {
                         clearInterval(checkClosed);
                         // Check if credentials were updated
-                        const updatedConfig = homebridge.getPluginConfig();
+                        const updatedConfig = normalizeConfig(homebridge.getPluginConfig());
                         if (updatedConfig[0]?.credentials?.accessToken) {
                            resolve(true);
                         } else {
@@ -313,7 +320,7 @@
 
    // Legacy functionality for existing UI elements
    const setupLegacyHandlers = () => {
-      const currentConfig = homebridge.getPluginConfig();
+      const currentConfig = normalizeConfig(homebridge.getPluginConfig());
       const hostname = window.location.hostname;
       
       homebridge.addEventListener('creds-received', async event => {
