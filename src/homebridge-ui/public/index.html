@@ -362,10 +362,8 @@
          );
       };
 
-      // Initialize legacy components if needed for backwards compatibility
-      if (!ui.featureOptions.isRequired()) {
-         setupLegacyMenus();
-      }
+      // Initialize legacy components for backwards compatibility
+      setupLegacyMenus();
    };
 
    const setupLegacyMenus = () => {
