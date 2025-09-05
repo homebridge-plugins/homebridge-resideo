@@ -6,12 +6,16 @@ import util from 'node:util'
 
 /* eslint-disable no-console */
 import { HomebridgePluginUiServer } from '@homebridge/plugin-ui-utils'
+import axios from 'axios'
+
+import { LocationURL } from '../settings.js'
 
 const exec = util.promisify(execCb)
 
 interface CustomRequestResponse {
   status: string
   data?: any
+  message?: string
 }
 
 export class PluginUiServer extends HomebridgePluginUiServer {
@@ -134,6 +138,77 @@ export class PluginUiServer extends HomebridgePluginUiServer {
       } catch (err) {
         // Just return an empty accessory list in case of any errors
         return { status: 'error', data: [] }
+      }
+    })
+
+    this.onRequest('/getAvailableDevices', async (): Promise<CustomRequestResponse> => {
+      try {
+        // Read the plugin configuration from config.json
+        const configFile = `${this.homebridgeStoragePath}/config.json`
+
+        if (!fs.existsSync(configFile)) {
+          return { status: 'error', data: [], message: 'Homebridge config not found' }
+        }
+
+        const configData = await fs.promises.readFile(configFile, 'utf8')
+        const homebridgeConfig = JSON.parse(configData)
+
+        // Find the Resideo plugin config
+        const pluginConfig = homebridgeConfig.platforms?.find(
+          (platform: any) => platform.platform === 'Resideo',
+        )
+
+        if (!pluginConfig) {
+          return { status: 'error', data: [], message: 'Resideo platform not configured' }
+        }
+
+        // Check if credentials are available
+        if (!pluginConfig.credentials?.accessToken) {
+          return { status: 'error', data: [], message: 'No access token found. Please configure OAuth credentials first.' }
+        }
+
+        // Create axios instance with auth header
+        const resideoAxios = axios.create({
+          headers: {
+            Authorization: `Bearer ${pluginConfig.credentials.accessToken}`,
+          },
+        })
+
+        // Get locations and devices from Resideo API
+        const locationsResponse = await resideoAxios.get(LocationURL)
+        const locations = locationsResponse.data
+
+        const allDevices: any[] = []
+
+        if (locations && locations.length > 0) {
+          for (const location of locations) {
+            if (location.devices && location.devices.length > 0) {
+              for (const device of location.devices) {
+                allDevices.push({
+                  locationName: location.name,
+                  locationID: location.locationID,
+                  deviceName: device.userDefinedDeviceName || device.name,
+                  deviceID: device.deviceID,
+                  deviceClass: device.deviceClass,
+                  deviceModel: device.deviceModel || device.deviceType,
+                  deviceType: device.deviceType,
+                  isOnline: device.isAlive,
+                })
+              }
+            }
+          }
+        }
+
+        return { status: 'ok', data: allDevices }
+      } catch (err: any) {
+        console.error('Error getting available devices:', err)
+
+        // Handle different types of errors
+        if (err.response?.status === 401) {
+          return { status: 'error', data: [], message: 'Authentication failed. Please re-authenticate with Resideo.' }
+        }
+
+        return { status: 'error', data: [], message: `Failed to get devices: ${err.message}` }
       }
     })
     this.ready()
