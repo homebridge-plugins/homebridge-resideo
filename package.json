@@ -61,7 +61,10 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
-    "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
+    "plugin-ui:mkdir": "shx mkdir -p dist/homebridge-ui/public/lib",
+    "plugin-ui:copy-html": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
+    "plugin-ui:copy-lib": "shx cp \"node_modules/homebridge-plugin-utils/dist/ui/**/*.@(js|mjs){,.map}\" dist/homebridge-ui/public/lib",
+    "plugin-ui": "npm run plugin-ui:mkdir && npm run plugin-ui:copy-html && npm run plugin-ui:copy-lib",
     "build": "npm run clean && tsc && npm run plugin-ui",
     "prepublishOnly": "npm run lint && npm run build && npm run plugin-ui && npm run docs && npm run lint-docs",
     "postpublish": "npm run clean && npm ci",
@@ -73,6 +76,7 @@
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^2.0.1",
     "axios": "1.8.1",
+    "homebridge-plugin-utils": "^1.29.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
