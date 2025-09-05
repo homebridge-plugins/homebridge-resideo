@@ -65,3 +65,7 @@ plugin allows you to access your Resideo Device(s) from HomeKit with
 - Some Total Comfort Control Thermostats
   - Pushing Commands may not be supported on some.
 - [WiFi Water Leak & Freeze Detector](https://www.resideo.com/us/en/products/water/spot-leak-detection/wifi-water-leak-freeze-detector-rchw3610wf1001-u/)
+
+### Unsupported Devices
+
+**Smoke/CO2 Detectors**: While Resideo manufactures smart smoke and carbon monoxide detectors (such as the SC5 series), these devices are **not supported** by this plugin because they are not included in the [Resideo Developer API](https://developer.honeywellhome.com/api-methods). Without API endpoints for smoke detectors, the plugin cannot communicate with or control these devices. Support may be added in the future if Resideo expands their API to include smoke detector endpoints.
