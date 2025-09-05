@@ -362,18 +362,7 @@
          );
       };
 
-      // Initialize legacy components if needed for backwards compatibility
-      if (!ui.featureOptions.isRequired()) {
-         setupLegacyMenus();
-      }
-   };
-
-   const setupLegacyMenus = () => {
-      // Legacy menu functionality for account, devices, support
-      document.getElementById('menuAccount')?.addEventListener('click', () => showAccount());
-      document.getElementById('menuDevices')?.addEventListener('click', () => showDevices());
-      document.getElementById('menuHome')?.addEventListener('click', () => showSupport());
-      document.getElementById('menuSettings')?.addEventListener('click', () => showSettings());
+      // webUi.show() handles all menu setup internally
    };
 
    // Show the webUI
