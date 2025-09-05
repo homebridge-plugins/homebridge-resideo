@@ -71,6 +71,8 @@
 </div>
 <div id="pageDevices" class="mt-4" style="display: none;">
    <div id="deviceInfo">
+      <h5>Cached Devices</h5>
+      <p>These are devices already configured in Homebridge:</p>
       <form>
          <div class="form-group">
             <select class="form-control" id="deviceSelect"></select>
@@ -96,6 +98,29 @@
                <th scope="row">Firmware Version</th>
                <td id="firmwareRevision"></td>
             </tr>
+         </tbody>
+      </table>
+   </div>
+   
+   <hr class="my-4">
+   
+   <div id="availableDevices">
+      <h5>Available Devices from Resideo</h5>
+      <p>These are all devices found in your Resideo account. Use the Device ID to add new devices to your configuration:</p>
+      <button type="button" class="btn btn-primary mb-3" id="refreshDevicesButton">Refresh Device List</button>
+      <div id="availableDevicesMessage" style="display: none;" class="alert alert-info" role="alert"></div>
+      <table class="table w-100" id="availableDevicesTable" style="display: none;">
+         <thead>
+            <tr class="table-active">
+               <th scope="col">Device Name</th>
+               <th scope="col">Device ID</th>
+               <th scope="col">Device Class</th>
+               <th scope="col">Model</th>
+               <th scope="col">Location</th>
+               <th scope="col">Status</th>
+            </tr>
+         </thead>
+         <tbody id="availableDevicesTableBody">
          </tbody>
       </table>
    </div>
@@ -316,6 +341,75 @@
                deviceSelect.disabled = true
             }
             homebridge.hideSpinner()
+            
+            // Load available devices when the page loads
+            loadAvailableDevices()
+            
+            // Set up refresh button
+            document.getElementById('refreshDevicesButton').addEventListener('click', () => {
+               loadAvailableDevices()
+            })
+         }
+         
+         loadAvailableDevices = async () => {
+            const messageDiv = document.getElementById('availableDevicesMessage')
+            const tableDiv = document.getElementById('availableDevicesTable')
+            const tableBody = document.getElementById('availableDevicesTableBody')
+            
+            try {
+               homebridge.showSpinner()
+               messageDiv.style.display = 'none'
+               tableDiv.style.display = 'none'
+               
+               const response = await homebridge.request('/getAvailableDevices')
+               
+               if (response.status === 'error') {
+                  messageDiv.className = 'alert alert-danger'
+                  messageDiv.innerHTML = response.message || 'Failed to load devices'
+                  messageDiv.style.display = 'block'
+                  return
+               }
+               
+               if (!response.data || response.data.length === 0) {
+                  messageDiv.className = 'alert alert-warning'
+                  messageDiv.innerHTML = 'No devices found in your Resideo account'
+                  messageDiv.style.display = 'block'
+                  return
+               }
+               
+               // Clear existing table data
+               tableBody.innerHTML = ''
+               
+               // Populate table with devices
+               response.data.forEach(device => {
+                  const row = document.createElement('tr')
+                  row.innerHTML = `
+                     <td><strong>${device.deviceName}</strong></td>
+                     <td><code>${device.deviceID}</code></td>
+                     <td>${device.deviceClass}</td>
+                     <td>${device.deviceModel || 'N/A'}</td>
+                     <td>${device.locationName}</td>
+                     <td>
+                        <span class="badge badge-${device.isOnline ? 'success' : 'secondary'}">
+                           ${device.isOnline ? 'Online' : 'Offline'}
+                        </span>
+                     </td>
+                  `
+                  tableBody.appendChild(row)
+               })
+               
+               tableDiv.style.display = 'table'
+               messageDiv.className = 'alert alert-success'
+               messageDiv.innerHTML = `Found ${response.data.length} device(s) in your Resideo account. Copy the Device ID to add devices to your configuration.`
+               messageDiv.style.display = 'block'
+               
+            } catch (error) {
+               messageDiv.className = 'alert alert-danger'
+               messageDiv.innerHTML = `Error loading devices: ${error.message}`
+               messageDiv.style.display = 'block'
+            } finally {
+               homebridge.hideSpinner()
+            }
          }
          showSupport = () => {
             homebridge.showSpinner()
