@@ -249,6 +249,7 @@ export interface ChangeableValues {
   heatSetpoint: number
   coolSetpoint: number
   thermostatSetpointStatus?: string
+  holdUntil?: string
   nextPeriodTime?: string
   endHeatSetpoint?: number
   endCoolSetpoint?: number
