@@ -102,7 +102,7 @@ export class Valve extends deviceBase {
   async refreshStatus(): Promise<void> {
     try {
       const device: any = (
-        await this.platform.axios.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
+        await this.platform.axios.get(`${DeviceURL}/shutoffvalve/${this.device.deviceID}`, {
           params: {
             locationId: this.location.locationID,
           },
@@ -133,7 +133,7 @@ export class Valve extends deviceBase {
         state: this.Valve.Active === this.hap.Characteristic.Active.ACTIVE ? 'open' : 'closed',
       }
 
-      await this.platform.axios.post(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, payload, {
+      await this.platform.axios.put(`${DeviceURL}/shutoffvalve/${this.device.deviceID}/control`, payload, {
         params: {
           locationId: this.location.locationID,
         },
