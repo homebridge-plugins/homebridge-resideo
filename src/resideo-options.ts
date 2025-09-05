@@ -9,7 +9,7 @@
 export const featureOptionCategories = [
   {
     name: 'Device',
-    description: 'General device configuration options for individual Resideo devices.',
+    description: 'Device configuration options for individual Resideo devices.',
   },
   {
     name: 'Thermostat',
