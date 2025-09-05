@@ -70,7 +70,6 @@ export interface devicesConfig extends resideoDevice {
   thermostat?: thermostat
   valve?: valve
   leaksensor?: leaksensor
-  smokesensor?: smokesensor
   external?: boolean
   logging?: string
   refreshRate?: number
@@ -96,13 +95,6 @@ export interface leaksensor {
   hide_humidity?: boolean
   hide_temperature?: boolean
   hide_leak?: boolean
-}
-
-export interface smokesensor {
-  hide_humidity?: boolean
-  hide_temperature?: boolean
-  hide_smoke?: boolean
-  hide_carbonmonoxide?: boolean
 }
 
 export interface roomsensor {

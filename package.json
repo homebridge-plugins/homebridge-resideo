@@ -40,13 +40,8 @@
     "thermostat",
     "roomsensor",
     "leaksensor",
-    "smokesensor",
     "room sensor",
     "leak sensor",
-    "smoke sensor",
-    "carbon monoxide",
-    "CO2",
-    "smoke detector",
     "lcc",
     "tcc",
     "Resideo",
@@ -54,9 +49,7 @@
     "honeywell home",
     "temperature",
     "humidity",
-    "leak",
-    "smoke",
-    "SC5"
+    "leak"
   ],
   "main": "dist/index.js",
   "engines": {
