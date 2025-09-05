@@ -9,6 +9,8 @@ import util from 'node:util'
 import { HomebridgePluginUiServer } from '@homebridge/plugin-ui-utils'
 import axios from 'axios'
 
+import { featureOptionCategories, featureOptions } from '../resideo-options.js'
+
 const exec = util.promisify(execCb)
 
 // Resideo API URLs
@@ -264,6 +266,135 @@ export class PluginUiServer extends HomebridgePluginUiServer {
             error: error.message || 'Failed to get available devices',
             details: error.code || 'Unknown error',
           },
+        }
+      }
+    })
+
+    // Add feature options endpoints for homebridge-plugin-utils
+    this.onRequest('/getFeatureOptions', async (): Promise<CustomRequestResponse> => {
+      return {
+        status: 'ok',
+        data: {
+          categories: featureOptionCategories,
+          options: featureOptions,
+        },
+      }
+    })
+
+    this.onRequest('/getDevices', async (): Promise<CustomRequestResponse> => {
+      try {
+        // Read the current config to get credentials and call getAvailableDevices
+        const configPath = this.homebridgeConfigPath || ''
+        if (!configPath || !fs.existsSync(configPath)) {
+          throw new Error('Homebridge config.json not found')
+        }
+
+        const configData = await fs.promises.readFile(configPath, 'utf8')
+        const config = JSON.parse(configData)
+
+        // Find the Resideo platform config
+        const platformConfig = config.platforms?.find((platform: Config) =>
+          platform.platform === 'Resideo' || platform.name === 'Resideo',
+        )
+
+        if (!platformConfig?.credentials) {
+          throw new Error('Resideo credentials not found in config. Please re-link your account.')
+        }
+
+        const credentials = platformConfig.credentials
+
+        if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
+          throw new Error('Invalid credentials configuration. Please re-link your account.')
+        }
+
+        // Get a fresh access token
+        let accessToken = credentials.accessToken
+
+        try {
+          const tokenResponse = await axios({
+            url: TokenURL,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            auth: {
+              username: credentials.consumerKey,
+              password: credentials.consumerSecret,
+            },
+            data: stringify({
+              grant_type: 'refresh_token',
+              refresh_token: credentials.refreshToken,
+            }),
+            responseType: 'json',
+          })
+
+          accessToken = tokenResponse.data.access_token
+
+          // Update the config with the new tokens if they changed
+          if (tokenResponse.data.refresh_token !== credentials.refreshToken) {
+            credentials.refreshToken = tokenResponse.data.refresh_token
+            credentials.accessToken = accessToken
+            await fs.promises.writeFile(configPath, JSON.stringify(config, null, 4))
+          }
+        } catch (tokenError: any) {
+          console.error('Failed to refresh access token:', tokenError.message)
+          throw new Error('Authentication failed. Please re-link your account in the plugin configuration.')
+        }
+
+        // Get locations and devices from Resideo API
+        const locationsResponse = await axios({
+          url: LocationURL,
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          params: {
+            apikey: credentials.consumerKey,
+          },
+        })
+
+        const locations = locationsResponse.data
+        const devices: any[] = []
+
+        // Extract devices from all locations
+        if (Array.isArray(locations)) {
+          locations.forEach((location: any) => {
+            if (location.devices && Array.isArray(location.devices)) {
+              location.devices.forEach((device: any) => {
+                devices.push({
+                  ...device,
+                  locationName: location.name,
+                  locationId: location.locationID,
+                })
+              })
+            }
+          })
+        }
+
+        // Transform devices for webUI format
+        const webUIDevices = devices.map((device: any) => ({
+          name: device.userDefinedDeviceName || device.name || `Device ${device.deviceID}`,
+          serialNumber: device.deviceID,
+          firmwareRevision: device.deviceSettings?.firmware || 'Unknown',
+          manufacturer: 'Resideo',
+          model: device.deviceModel || device.deviceType || 'Unknown',
+          // Additional properties for the webUI
+          deviceID: device.deviceID,
+          deviceType: device.deviceType,
+          locationName: device.locationName,
+          locationId: device.locationId,
+        }))
+
+        return {
+          status: 'ok',
+          data: webUIDevices,
+        }
+      } catch (error: any) {
+        console.error('Error getting devices for webUI:', error)
+        return {
+          status: 'error',
+          data: [],
         }
       }
     })

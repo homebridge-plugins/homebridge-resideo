@@ -48,6 +48,25 @@
       Support
    </button>
 </div>
+<div id="pageFirstRun" class="mt-4" style="display: none;">
+   <div class="alert alert-info">
+      <h5>Getting Started</h5>
+      <p class="mb-2">Welcome to homebridge-resideo! Let's get your account configured.</p>
+      <p class="mb-0">Please enter your Resideo API credentials to continue.</p>
+   </div>
+   <div class="form-group">
+      <label for="firstRunKey">Consumer Key <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" id="firstRunKey">
+   </div>
+   <div class="form-group">
+      <label for="firstRunSecret">Consumer Secret <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" id="firstRunSecret">
+   </div>
+   <div id="loginError">&nbsp;</div>
+   <div class="form-group text-center">
+      <button type="button" class="btn btn-primary" id="firstRun">Setup Account &rarr;</button>
+   </div>
+</div>
 <div id="pageAccount" class="mt-4" style="display: none;">
    <div class="alert alert-warning" style="display: none;" id="validateForm">
       Please enter both values
@@ -69,11 +88,14 @@
       <button type="button" class="btn btn-danger" id="unLinkButton">Unlink Account &rarr;</button>
    </div>
 </div>
+<!-- Dynamic device configuration UI will be rendered here by webUI -->
+<div id="pageFeatureOptions" class="mt-4" style="display: none;">
+</div>
 <div id="pageDevices" class="mt-4" style="display: none;">
    <div class="alert alert-info" id="deviceConfigInfo">
       <h5>Device Configuration Made Easy</h5>
-      <p class="mb-2">This section shows devices available from your Resideo account and provides quick configuration options.</p>
-      <p class="mb-0">Select a device below to view its details and copy the necessary configuration settings.</p>
+      <p class="mb-2">This section shows devices available from your Resideo account and provides dynamic configuration options.</p>
+      <p class="mb-0">Select a device below to view its details and configure its settings using the feature options system.</p>
    </div>
    <div id="deviceInfo">
       <form>
@@ -183,376 +205,185 @@
       </li>
    </ul>
 </div>
-<script>
-   ; (async () => {
-      try {
-         const currentConfig = await homebridge.getPluginConfig()
-         const hostname = window.location.hostname
-         try {
-            await homebridge.request('Start Resideo Login Server')
-         } catch (err) {
-            const msg = err.message
-            homebridge.toast.error(msg, 'HTTP Server Not Started')
+<script type="module">
+   import { webUi } from "./lib/webUi.mjs";
+
+   // Initialize the webUI with homebridge-plugin-utils
+   const ui = new webUi({
+      featureOptions: {
+         getFeatureOptions: () => homebridge.request('/getFeatureOptions'),
+         getDevices: () => homebridge.request('/getDevices'),
+         infoPanel: (device) => {
+            return `
+               <div class="mt-3">
+                  <h6>Device Information</h6>
+                  <p><strong>Name:</strong> ${device.name}</p>
+                  <p><strong>Device ID:</strong> ${device.deviceID}</p>
+                  <p><strong>Type:</strong> ${device.deviceType || 'Unknown'}</p>
+                  <p><strong>Location:</strong> ${device.locationName || 'Unknown'}</p>
+                  <p><strong>Model:</strong> ${device.model}</p>
+                  <p><strong>Firmware:</strong> ${device.firmwareRevision}</p>
+               </div>
+            `;
          }
-         homebridge.addEventListener('creds-received', async event => {
+      },
+      firstRun: {
+         isRequired: () => {
+            // Check if we need to run first-time setup
+            const currentConfig = homebridge.getPluginConfig();
+            return !currentConfig[0]?.credentials?.consumerKey || !currentConfig[0]?.credentials?.consumerSecret;
+         },
+         onStart: () => {
+            // Initialize first run form
+            const currentConfig = homebridge.getPluginConfig();
+            if (currentConfig[0]?.credentials) {
+               document.getElementById('firstRunKey').value = currentConfig[0].credentials.consumerKey || '';
+               document.getElementById('firstRunSecret').value = currentConfig[0].credentials.consumerSecret || '';
+            }
+            return true;
+         },
+         onSubmit: async () => {
+            // Handle first run setup
+            const key = document.getElementById('firstRunKey').value;
+            const secret = document.getElementById('firstRunSecret').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!key || !secret) {
+               errorDiv.innerHTML = '<div class="alert alert-danger">Please enter both Consumer Key and Consumer Secret.</div>';
+               return false;
+            }
+
             try {
-               if (event.data.access && event.data.refresh) {
-                  this.popup.close()
-                  currentConfig[0].credentials = {
-                     consumerKey: event.data.key,
-                     consumerSecret: event.data.secret,
-                     accessToken: event.data.access,
-                     refreshToken: event.data.refresh
-                  }
-                  await homebridge.updatePluginConfig(currentConfig)
-                  await homebridge.savePluginConfig()
-                  homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo")
-                  document.getElementById('backToIntro').style.display = 'none'
-                  document.getElementById('linkButton').style.display = 'none'
-                  document.getElementById('unLinkButton').style.display = 'none'
-                  document.getElementById('linkSuccess').style.display = 'block'
-               } else {
-                  throw new Error('no access/token received from server')
+               // Test the credentials by attempting to link the account
+               const currentConfig = homebridge.getPluginConfig();
+               if (!currentConfig[0]) {
+                  currentConfig.push({ name: 'Resideo' });
                }
-            } catch (err) {
-               console.log(err)
-               homebridge.toast.error('Try again, or see the console message for info.', 'Error')
-            }
-         })
-         copyMyText = () => {
-            var textToCopy = document.getElementById("copyMe");
-            textToCopy.select();
-            document.execCommand("copy");
-         }
-         linkAccount = async () => {
-            document.getElementById('validateForm').style.display = 'none'
-            if (
-               !document.getElementById('inputConsumerKey').value ||
-               !document.getElementById('inputConsumerSecret').value
-            ) {
-               document.getElementById('validateForm').style.display = 'block'
-               return
-            }
-            const w = 450;
-            const h = 700;
-            const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
-            const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
-            const urlToOpen = 'http://' + hostname + ':8585/start?' +
-               'key=' + document.getElementById('inputConsumerKey').value +
-               '&secret=' + document.getElementById('inputConsumerSecret').value +
-               '&host=' + encodeURI(hostname);
-            this.popup = window.open(
-               urlToOpen, 'honeywell-auth',
-               'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
-               'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
-            )
-         }
-         unLinkAccount = async () => {
-            try {
-               document.getElementById('validateForm').style.display = 'none'
-               if (
-                  !document.getElementById('inputConsumerKey').value ||
-                  !document.getElementById('inputConsumerSecret').value
-               ) {
-                  document.getElementById('validateForm').style.display = 'block'
-                  return
-               }
-               delete currentConfig[0].credentials
-               await homebridge.updatePluginConfig(currentConfig)
-               await homebridge.savePluginConfig()
-               document.getElementById('inputConsumerKey').value = ''
-               document.getElementById('inputConsumerSecret').value = ''
-               document.getElementById('unLinkButton').style.display = 'none'
-            } catch (err) {
-               console.error(err)
-               homebridge.toast.error('Try again, or see the console message for info.', 'Error')
-            }
-         }
-         showIntro = () => {
-            const introLink = document.getElementById('introLink')
-            document.getElementById('copyMe').value = 'http://' + hostname + ':8585/auth'
-            introLink.addEventListener('click', () => {
-               homebridge.showSpinner()
-               document.getElementById('pageIntro').style.display = 'none'
-               document.getElementById('menuWrapper').style.display = 'inline-flex'
-               showAccount()
-               homebridge.hideSpinner()
-            })
-            document.getElementById('pageAccount').style.display = 'none'
-            document.getElementById('menuWrapper').style.display = 'none'
-            document.getElementById('pageIntro').style.display = 'block'
-         }
-         showDevices = async () => {
-            homebridge.showSpinner()
-            homebridge.hideSchemaForm()
-            document.getElementById('menuHome').classList.remove('btn-elegant')
-            document.getElementById('menuHome').classList.add('btn-primary')
-            document.getElementById('menuDevices').classList.add('btn-elegant')
-            document.getElementById('menuDevices').classList.remove('btn-primary')
-            document.getElementById('menuAccount').classList.remove('btn-elegant')
-            document.getElementById('menuAccount').classList.add('btn-primary')
-            document.getElementById('menuSettings').classList.remove('btn-elegant')
-            document.getElementById('menuSettings').classList.add('btn-primary')
-            document.getElementById('pageSupport').style.display = 'none'
-            document.getElementById('pageAccount').style.display = 'none'
-            document.getElementById('pageDevices').style.display = 'block'
-            
-            try {
-               // Try to get available devices from the API first
-               const availableDevicesResponse = await homebridge.request('/getAvailableDevices')
                
-               if (availableDevicesResponse && availableDevicesResponse.data && availableDevicesResponse.data.devices) {
-                  const availableDevices = availableDevicesResponse.data.devices
-                  
-                  const deviceSelect = document.getElementById('deviceSelect')
-                  deviceSelect.innerHTML = ''
-                  
-                  // Add option to show available devices for configuration
-                  const optionHeader = document.createElement('option')
-                  optionHeader.text = 'Available Devices from Resideo API'
-                  optionHeader.disabled = true
-                  deviceSelect.add(optionHeader)
-                  
-                  availableDevices.forEach(device => {
-                     const option = document.createElement('option')
-                     option.text = `${device.userDefinedDeviceName || device.name || 'Unknown Device'} (${device.deviceID})`
-                     option.value = JSON.stringify(device)
-                     deviceSelect.add(option)
-                  })
-                  
-                  showApiDeviceInfo = deviceData => {
-                     homebridge.showSpinner()
-                     const device = JSON.parse(deviceData)
-                     document.getElementById('displayName').textContent = device.userDefinedDeviceName || device.name || 'Unknown Device'
-                     document.getElementById('deviceID').innerHTML = device.deviceID || 'N/A'
-                     document.getElementById('model').innerHTML = device.deviceModel || device.deviceType || 'N/A'
-                     document.getElementById('firmwareRevision').innerHTML = device.deviceSettings?.firmware || 'N/A'
-                     
-                     // Show quick configuration section
-                     document.getElementById('quickDeviceID').value = device.deviceID
-                     
-                     // Determine device class based on device type
-                     let deviceClass = 'Thermostat' // Default
-                     let deviceModel = device.deviceModel || 'T5'
-                     
-                     if (device.deviceType && device.deviceType.toLowerCase().includes('leak')) {
-                        deviceClass = 'LeakDetector'
-                        deviceModel = 'Leak Sensor'
-                     } else if (device.deviceType && device.deviceType.toLowerCase().includes('valve')) {
-                        deviceClass = 'ShutoffValve'
-                        deviceModel = 'Valve'
-                     } else if (device.deviceType && device.deviceType.toLowerCase().includes('thermostat')) {
-                        deviceClass = 'Thermostat'
-                        // Keep existing model or use T5 as default
-                     }
-                     
-                     document.getElementById('recommendedClass').textContent = deviceClass
-                     document.getElementById('suggestedModel').textContent = deviceModel
-                     document.getElementById('quickConfigSection').style.display = 'block'
-                     
-                     // Add copy functionality
-                     document.getElementById('copyDeviceID').onclick = () => {
-                        const deviceIDField = document.getElementById('quickDeviceID')
-                        deviceIDField.select()
-                        document.execCommand('copy')
-                        homebridge.toast.success('Device ID copied to clipboard!', 'Copied')
-                     }
-                     
-                     // Add location information
-                     if (device.locationName) {
-                        const locationRow = document.createElement('tr')
-                        locationRow.innerHTML = `<th scope="row">Location</th><td>${device.locationName}</td>`
-                        document.getElementById('deviceTable').getElementsByTagName('tbody')[0].appendChild(locationRow)
-                     }
-                     
-                     // Add device type/class information
-                     if (device.deviceClass || device.deviceType) {
-                        const typeRow = document.createElement('tr')
-                        typeRow.innerHTML = `<th scope="row">Device Type</th><td>${device.deviceClass || device.deviceType}</td>`
-                        document.getElementById('deviceTable').getElementsByTagName('tbody')[0].appendChild(typeRow)
-                     }
-                     
-                     document.getElementById('deviceTable').style.display = 'inline-table'
-                     homebridge.hideSpinner()
-                  }
-                  
-                  deviceSelect.addEventListener('change', event => {
-                     if (event.target.value && event.target.value !== '') {
-                        // Clear previous dynamic rows
-                        const tbody = document.getElementById('deviceTable').getElementsByTagName('tbody')[0]
-                        while (tbody.children.length > 3) {
-                           tbody.removeChild(tbody.lastChild)
+               currentConfig[0].credentials = {
+                  consumerKey: key,
+                  consumerSecret: secret
+               };
+
+               await homebridge.updatePluginConfig(currentConfig);
+               
+               // Now trigger the OAuth flow
+               await homebridge.request('Start Resideo Login Server');
+               
+               // Open OAuth popup
+               const hostname = window.location.hostname;
+               const w = 450;
+               const h = 700;
+               const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
+               const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
+               const urlToOpen = 'http://' + hostname + ':8585/start?' +
+                  'key=' + encodeURIComponent(key) +
+                  '&secret=' + encodeURIComponent(secret) +
+                  '&host=' + encodeURIComponent(hostname);
+               
+               const popup = window.open(
+                  urlToOpen, 'resideo-auth',
+                  'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
+                  'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
+               );
+
+               return new Promise((resolve) => {
+                  const checkClosed = setInterval(() => {
+                     if (popup.closed) {
+                        clearInterval(checkClosed);
+                        // Check if credentials were updated
+                        const updatedConfig = homebridge.getPluginConfig();
+                        if (updatedConfig[0]?.credentials?.accessToken) {
+                           resolve(true);
+                        } else {
+                           errorDiv.innerHTML = '<div class="alert alert-danger">Authentication failed. Please try again.</div>';
+                           resolve(false);
                         }
-                        // Hide quick config section initially
-                        document.getElementById('quickConfigSection').style.display = 'none'
-                        showApiDeviceInfo(event.target.value)
-                     } else {
-                        // Hide sections when no device is selected
-                        document.getElementById('quickConfigSection').style.display = 'none'
-                        document.getElementById('deviceTable').style.display = 'none'
                      }
-                  })
-                  
-                  if (availableDevices.length > 0) {
-                     // Don't auto-select, let user choose
-                     const option = document.createElement('option')
-                     option.text = 'Select a device to view details and configuration options'
-                     option.value = ''
-                     option.selected = true
-                     deviceSelect.insertBefore(option, deviceSelect.firstChild)
-                  }
-               } else {
-                  throw new Error('No devices available from API')
-               }
+                  }, 1000);
+               });
             } catch (error) {
-               console.warn('Could not load devices from API, falling back to cached accessories:', error)
-               
-               // Fallback to existing cached accessories approach
-               const cachedAccessories =
-                  typeof homebridge.getCachedAccessories === 'function'
-                     ? await homebridge.getCachedAccessories()
-                     : await homebridge.request('/getCachedAccessories')
-               if (cachedAccessories.length > 0) {
-                  cachedAccessories.sort((a, b) => {
-                     return a.displayName.toLowerCase() > b.displayName.toLowerCase()
-                        ? 1
-                        : b.displayName.toLowerCase() > a.displayName.toLowerCase()
-                           ? -1
-                           : 0
-                  })
-               }
-               const deviceSelect = document.getElementById('deviceSelect')
-               deviceSelect.innerHTML = ''
-               cachedAccessories.forEach(a => {
-                  const option = document.createElement('option')
-                  option.text = a.displayName
-                  option.value = a.UUID
-                  deviceSelect.add(option)
-               })
-               showDeviceInfo = async UUID => {
-                  homebridge.showSpinner()
-                  const thisAcc = cachedAccessories.find(x => x.UUID === UUID)
-                  const context = thisAcc.context
-                  document.getElementById('displayName').innerHTML = thisAcc.displayName
-                  document.getElementById('deviceID').innerHTML = context.deviceID
-                  document.getElementById('model').innerHTML = context.model
-                  document.getElementById('firmwareRevision').innerHTML = context.firmwareRevision || 'N/A'
-                  document.getElementById('deviceTable').style.display = 'inline-table'
-                  homebridge.hideSpinner()
-               }
-               deviceSelect.addEventListener('change', event => showDeviceInfo(event.target.value))
-               if (cachedAccessories.length > 0) {
-                  showDeviceInfo(cachedAccessories[0].UUID)
-               } else {
-                  const option = document.createElement('option')
-                  option.text = 'No Devices'
-                  deviceSelect.add(option)
-                  deviceSelect.disabled = true
-               }
+               errorDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+               return false;
             }
-            homebridge.hideSpinner()
          }
-         showSupport = () => {
-            homebridge.showSpinner()
-            homebridge.hideSchemaForm()
-            document.getElementById('menuHome').classList.add('btn-elegant')
-            document.getElementById('menuHome').classList.remove('btn-primary')
-            document.getElementById('menuDevices').classList.remove('btn-elegant')
-            document.getElementById('menuDevices').classList.add('btn-primary')
-            document.getElementById('menuSettings').classList.remove('btn-elegant')
-            document.getElementById('menuSettings').classList.add('btn-primary')
-            document.getElementById('menuAccount').classList.remove('btn-elegant')
-            document.getElementById('menuAccount').classList.add('btn-primary')
-            document.getElementById('pageSupport').style.display = 'block'
-            document.getElementById('pageDevices').style.display = 'none'
-            document.getElementById('pageAccount').style.display = 'none'
-            homebridge.hideSpinner()
-         }
-         showSettings = () => {
-            homebridge.showSpinner()
-            document.getElementById('menuHome').classList.remove('btn-elegant')
-            document.getElementById('menuHome').classList.add('btn-primary')
-            document.getElementById('menuDevices').classList.remove('btn-elegant')
-            document.getElementById('menuDevices').classList.add('btn-primary')
-            document.getElementById('menuSettings').classList.add('btn-elegant')
-            document.getElementById('menuSettings').classList.remove('btn-primary')
-            document.getElementById('menuAccount').classList.remove('btn-elegant')
-            document.getElementById('menuAccount').classList.add('btn-primary')
-            document.getElementById('pageSupport').style.display = 'none'
-            document.getElementById('pageDevices').style.display = 'none'
-            document.getElementById('pageAccount').style.display = 'none'
-            homebridge.showSchemaForm()
-            homebridge.hideSpinner()
-         }
-         showAccount = () => {
-            homebridge.showSpinner()
-            const backToIntro = document.getElementById('backToIntro')
-            backToIntro.addEventListener('click', () => {
-               showIntro()
-            })
-            backToIntro.style.display = 'none'
-            const linkButton = document.getElementById('linkButton')
-            linkButton.addEventListener('click', () => {
-               linkAccount()
-            })
-            const unLinkButton = document.getElementById('unLinkButton')
-            unLinkButton.style.display = 'none'
-            unLinkButton.addEventListener('click', () => {
-               unLinkAccount()
-            })
-            document.getElementById('linkSuccess').style.display = 'none'
-            homebridge.hideSchemaForm()
-            document.getElementById('menuHome').classList.remove('btn-elegant')
-            document.getElementById('menuHome').classList.add('btn-primary')
-            document.getElementById('menuDevices').classList.remove('btn-elegant')
-            document.getElementById('menuDevices').classList.add('btn-primary')
-            document.getElementById('menuAccount').classList.add('btn-elegant')
-            document.getElementById('menuAccount').classList.remove('btn-primary')
-            document.getElementById('menuSettings').classList.remove('btn-elegant')
-            document.getElementById('menuSettings').classList.add('btn-primary')
-            document.getElementById('pageSupport').style.display = 'none'
-            document.getElementById('pageDevices').style.display = 'none'
-            document.getElementById('pageAccount').style.display = 'block'
-            document.getElementById('linkButton').style.display = 'inline-block'
-            let isRelink = false
-            if (currentConfig[0] && currentConfig[0].credentials) {
-               const key = currentConfig[0].credentials.consumerKey || ''
-               const secret = currentConfig[0].credentials.consumerSecret || ''
-               document.getElementById('inputConsumerKey').value = key
-               document.getElementById('inputConsumerSecret').value = secret
-               if (key && secret) {
-                  isRelink = true
-                  document.getElementById('unLinkButton').style.display = 'inline-block'
-               } else {
-                  document.getElementById('unLinkButton').style.display = 'none'
-               }
+      },
+      name: 'homebridge-resideo'
+   });
+
+   // Legacy functionality for existing UI elements
+   const setupLegacyHandlers = () => {
+      const currentConfig = homebridge.getPluginConfig();
+      const hostname = window.location.hostname;
+      
+      homebridge.addEventListener('creds-received', async event => {
+         try {
+            if (event.data.access && event.data.refresh) {
+               currentConfig[0].credentials = {
+                  consumerKey: event.data.key,
+                  consumerSecret: event.data.secret,
+                  accessToken: event.data.access,
+                  refreshToken: event.data.refresh
+               };
+               await homebridge.updatePluginConfig(currentConfig);
+               await homebridge.savePluginConfig();
+               homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
             }
-            document.getElementById('linkButton').innerHTML = isRelink
-               ? 'Relink Account &rarr;'
-               : 'Link Account &rarr;'
-            if (!isRelink) {
-               document.getElementById('backToIntro').style.display = 'inline-block'
-            } else {
-               document.getElementById('backToIntro').style.display = 'none'
-            }
-            homebridge.hideSpinner()
+         } catch (err) {
+            console.log(err);
+            homebridge.toast.error('Try again, or see the console message for info.', 'Error');
          }
-         menuHome.addEventListener('click', () => showSupport())
-         menuAccount.addEventListener('click', () => showAccount())
-         menuDevices.addEventListener('click', () => showDevices())
-         menuSettings.addEventListener('click', () => showSettings())
-         if (currentConfig.length) {
-            document.getElementById('menuWrapper').style.display = 'inline-flex'
-            showAccount()
-         } else {
-            currentConfig.push({ name: 'Resideo' })
-            await homebridge.updatePluginConfig(currentConfig)
-            showIntro()
+      });
+
+      window.copyMyText = () => {
+         const textToCopy = document.getElementById("copyMe");
+         textToCopy.select();
+         document.execCommand("copy");
+      };
+
+      window.linkAccount = async () => {
+         document.getElementById('validateForm').style.display = 'none';
+         if (!document.getElementById('inputConsumerKey').value || !document.getElementById('inputConsumerSecret').value) {
+            document.getElementById('validateForm').style.display = 'block';
+            return;
          }
-      } catch (err) {
-         homebridge.toast.error(err.message, 'Error')
-      } finally {
-         homebridge.hideSpinner()
+         const w = 450;
+         const h = 700;
+         const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
+         const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
+         const urlToOpen = 'http://' + hostname + ':8585/start?' +
+            'key=' + document.getElementById('inputConsumerKey').value +
+            '&secret=' + document.getElementById('inputConsumerSecret').value +
+            '&host=' + encodeURI(hostname);
+         window.popup = window.open(
+            urlToOpen, 'honeywell-auth',
+            'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
+            'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
+         );
+      };
+
+      // Initialize legacy components if needed for backwards compatibility
+      if (!ui.featureOptions.isRequired()) {
+         setupLegacyMenus();
       }
-   })()
+   };
+
+   const setupLegacyMenus = () => {
+      // Legacy menu functionality for account, devices, support
+      document.getElementById('menuAccount')?.addEventListener('click', () => showAccount());
+      document.getElementById('menuDevices')?.addEventListener('click', () => showDevices());
+      document.getElementById('menuHome')?.addEventListener('click', () => showSupport());
+      document.getElementById('menuSettings')?.addEventListener('click', () => showSettings());
+   };
+
+   // Show the webUI
+   (async () => {
+      try {
+         await homebridge.request('Start Resideo Login Server');
+         setupLegacyHandlers();
+         ui.show();
+      } catch (err) {
+         homebridge.toast.error(err.message, 'Error');
+      }
+   })();
 </script>
