@@ -70,12 +70,34 @@
    </div>
 </div>
 <div id="pageDevices" class="mt-4" style="display: none;">
+   <div class="alert alert-info" id="deviceConfigInfo">
+      <h5>Device Configuration Made Easy</h5>
+      <p class="mb-2">This section shows devices available from your Resideo account and provides quick configuration options.</p>
+      <p class="mb-0">Select a device below to view its details and copy the necessary configuration settings.</p>
+   </div>
    <div id="deviceInfo">
       <form>
          <div class="form-group">
+            <label for="deviceSelect"><strong>Available Devices:</strong></label>
             <select class="form-control" id="deviceSelect"></select>
          </div>
       </form>
+      <div id="quickConfigSection" style="display: none;" class="mt-3">
+         <div class="alert alert-success">
+            <h6>Quick Configuration</h6>
+            <p class="mb-2">Copy the device ID below and paste it into the plugin settings:</p>
+            <div class="input-group">
+               <input type="text" class="form-control" id="quickDeviceID" readonly>
+               <div class="input-group-append">
+                  <button class="btn btn-outline-secondary" type="button" id="copyDeviceID">Copy</button>
+               </div>
+            </div>
+            <small class="form-text text-muted mt-2">
+               Recommended device class: <span id="recommendedClass"></span><br>
+               Suggested device model: <span id="suggestedModel"></span>
+            </small>
+         </div>
+      </div>
       <table class="table w-100" id="deviceTable" style="display: none;">
          <thead>
             <tr class="table-active">
@@ -274,46 +296,159 @@
             document.getElementById('pageSupport').style.display = 'none'
             document.getElementById('pageAccount').style.display = 'none'
             document.getElementById('pageDevices').style.display = 'block'
-            const cachedAccessories =
-               typeof homebridge.getCachedAccessories === 'function'
-                  ? await homebridge.getCachedAccessories()
-                  : await homebridge.request('/getCachedAccessories')
-            if (cachedAccessories.length > 0) {
-               cachedAccessories.sort((a, b) => {
-                  return a.displayName.toLowerCase() > b.displayName.toLowerCase()
-                     ? 1
-                     : b.displayName.toLowerCase() > a.displayName.toLowerCase()
-                        ? -1
-                        : 0
+            
+            try {
+               // Try to get available devices from the API first
+               const availableDevicesResponse = await homebridge.request('/getAvailableDevices')
+               
+               if (availableDevicesResponse && availableDevicesResponse.data && availableDevicesResponse.data.devices) {
+                  const availableDevices = availableDevicesResponse.data.devices
+                  
+                  const deviceSelect = document.getElementById('deviceSelect')
+                  deviceSelect.innerHTML = ''
+                  
+                  // Add option to show available devices for configuration
+                  const optionHeader = document.createElement('option')
+                  optionHeader.text = 'Available Devices from Resideo API'
+                  optionHeader.disabled = true
+                  deviceSelect.add(optionHeader)
+                  
+                  availableDevices.forEach(device => {
+                     const option = document.createElement('option')
+                     option.text = `${device.userDefinedDeviceName || device.name || 'Unknown Device'} (${device.deviceID})`
+                     option.value = JSON.stringify(device)
+                     deviceSelect.add(option)
+                  })
+                  
+                  showApiDeviceInfo = deviceData => {
+                     homebridge.showSpinner()
+                     const device = JSON.parse(deviceData)
+                     document.getElementById('displayName').innerHTML = device.userDefinedDeviceName || device.name || 'Unknown Device'
+                     document.getElementById('deviceID').innerHTML = device.deviceID || 'N/A'
+                     document.getElementById('model').innerHTML = device.deviceModel || device.deviceType || 'N/A'
+                     document.getElementById('firmwareRevision').innerHTML = device.deviceSettings?.firmware || 'N/A'
+                     
+                     // Show quick configuration section
+                     document.getElementById('quickDeviceID').value = device.deviceID
+                     
+                     // Determine device class based on device type
+                     let deviceClass = 'Thermostat' // Default
+                     let deviceModel = device.deviceModel || 'T5'
+                     
+                     if (device.deviceType && device.deviceType.toLowerCase().includes('leak')) {
+                        deviceClass = 'LeakDetector'
+                        deviceModel = 'Leak Sensor'
+                     } else if (device.deviceType && device.deviceType.toLowerCase().includes('valve')) {
+                        deviceClass = 'ShutoffValve'
+                        deviceModel = 'Valve'
+                     } else if (device.deviceType && device.deviceType.toLowerCase().includes('thermostat')) {
+                        deviceClass = 'Thermostat'
+                        // Keep existing model or use T5 as default
+                     }
+                     
+                     document.getElementById('recommendedClass').textContent = deviceClass
+                     document.getElementById('suggestedModel').textContent = deviceModel
+                     document.getElementById('quickConfigSection').style.display = 'block'
+                     
+                     // Add copy functionality
+                     document.getElementById('copyDeviceID').onclick = () => {
+                        const deviceIDField = document.getElementById('quickDeviceID')
+                        deviceIDField.select()
+                        document.execCommand('copy')
+                        homebridge.toast.success('Device ID copied to clipboard!', 'Copied')
+                     }
+                     
+                     // Add location information
+                     if (device.locationName) {
+                        const locationRow = document.createElement('tr')
+                        locationRow.innerHTML = `<th scope="row">Location</th><td>${device.locationName}</td>`
+                        document.getElementById('deviceTable').getElementsByTagName('tbody')[0].appendChild(locationRow)
+                     }
+                     
+                     // Add device type/class information
+                     if (device.deviceClass || device.deviceType) {
+                        const typeRow = document.createElement('tr')
+                        typeRow.innerHTML = `<th scope="row">Device Type</th><td>${device.deviceClass || device.deviceType}</td>`
+                        document.getElementById('deviceTable').getElementsByTagName('tbody')[0].appendChild(typeRow)
+                     }
+                     
+                     document.getElementById('deviceTable').style.display = 'inline-table'
+                     homebridge.hideSpinner()
+                  }
+                  
+                  deviceSelect.addEventListener('change', event => {
+                     if (event.target.value && event.target.value !== '') {
+                        // Clear previous dynamic rows
+                        const tbody = document.getElementById('deviceTable').getElementsByTagName('tbody')[0]
+                        while (tbody.children.length > 3) {
+                           tbody.removeChild(tbody.lastChild)
+                        }
+                        // Hide quick config section initially
+                        document.getElementById('quickConfigSection').style.display = 'none'
+                        showApiDeviceInfo(event.target.value)
+                     } else {
+                        // Hide sections when no device is selected
+                        document.getElementById('quickConfigSection').style.display = 'none'
+                        document.getElementById('deviceTable').style.display = 'none'
+                     }
+                  })
+                  
+                  if (availableDevices.length > 0) {
+                     // Don't auto-select, let user choose
+                     const option = document.createElement('option')
+                     option.text = 'Select a device to view details and configuration options'
+                     option.value = ''
+                     option.selected = true
+                     deviceSelect.insertBefore(option, deviceSelect.firstChild)
+                  }
+               } else {
+                  throw new Error('No devices available from API')
+               }
+            } catch (error) {
+               console.warn('Could not load devices from API, falling back to cached accessories:', error)
+               
+               // Fallback to existing cached accessories approach
+               const cachedAccessories =
+                  typeof homebridge.getCachedAccessories === 'function'
+                     ? await homebridge.getCachedAccessories()
+                     : await homebridge.request('/getCachedAccessories')
+               if (cachedAccessories.length > 0) {
+                  cachedAccessories.sort((a, b) => {
+                     return a.displayName.toLowerCase() > b.displayName.toLowerCase()
+                        ? 1
+                        : b.displayName.toLowerCase() > a.displayName.toLowerCase()
+                           ? -1
+                           : 0
+                  })
+               }
+               const deviceSelect = document.getElementById('deviceSelect')
+               deviceSelect.innerHTML = ''
+               cachedAccessories.forEach(a => {
+                  const option = document.createElement('option')
+                  option.text = a.displayName
+                  option.value = a.UUID
+                  deviceSelect.add(option)
                })
-            }
-            const deviceSelect = document.getElementById('deviceSelect')
-            deviceSelect.innerHTML = ''
-            cachedAccessories.forEach(a => {
-               const option = document.createElement('option')
-               option.text = a.displayName
-               option.value = a.UUID
-               deviceSelect.add(option)
-            })
-            showDeviceInfo = async UUID => {
-               homebridge.showSpinner()
-               const thisAcc = cachedAccessories.find(x => x.UUID === UUID)
-               const context = thisAcc.context
-               document.getElementById('displayName').innerHTML = thisAcc.displayName
-               document.getElementById('deviceID').innerHTML = context.deviceID
-               document.getElementById('model').innerHTML = context.model
-               document.getElementById('firmwareRevision').innerHTML = context.firmwareRevision || 'N/A'
-               document.getElementById('deviceTable').style.display = 'inline-table'
-               homebridge.hideSpinner()
-            }
-            deviceSelect.addEventListener('change', event => showDeviceInfo(event.target.value))
-            if (cachedAccessories.length > 0) {
-               showDeviceInfo(cachedAccessories[0].UUID)
-            } else {
-               const option = document.createElement('option')
-               option.text = 'No Devices'
-               deviceSelect.add(option)
-               deviceSelect.disabled = true
+               showDeviceInfo = async UUID => {
+                  homebridge.showSpinner()
+                  const thisAcc = cachedAccessories.find(x => x.UUID === UUID)
+                  const context = thisAcc.context
+                  document.getElementById('displayName').innerHTML = thisAcc.displayName
+                  document.getElementById('deviceID').innerHTML = context.deviceID
+                  document.getElementById('model').innerHTML = context.model
+                  document.getElementById('firmwareRevision').innerHTML = context.firmwareRevision || 'N/A'
+                  document.getElementById('deviceTable').style.display = 'inline-table'
+                  homebridge.hideSpinner()
+               }
+               deviceSelect.addEventListener('change', event => showDeviceInfo(event.target.value))
+               if (cachedAccessories.length > 0) {
+                  showDeviceInfo(cachedAccessories[0].UUID)
+               } else {
+                  const option = document.createElement('option')
+                  option.text = 'No Devices'
+                  deviceSelect.add(option)
+                  deviceSelect.disabled = true
+               }
             }
             homebridge.hideSpinner()
          }
