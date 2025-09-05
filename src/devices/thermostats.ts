@@ -281,32 +281,43 @@ export class Thermostats extends deviceBase {
       this.debugLog(`${device.deviceClass} ${accessory.displayName} Humidity Sensor Service Not Added`)
     }
 
-    // Initialize StatefulProgrammableSwitch property
-    accessory.context.StatefulProgrammableSwitch = accessory.context.StatefulProgrammableSwitch ?? {}
-    this.StatefulProgrammableSwitch = {
-      Name: accessory.context.StatefulProgrammableSwitch.Name ?? accessory.displayName,
-      Service: accessory.getService(this.hap.Service.StatefulProgrammableSwitch) ?? accessory.addService(this.hap.Service.StatefulProgrammableSwitch) as Service,
-      ProgrammableSwitchEvent: accessory.context.ProgrammableSwitchEvent ?? this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-      ProgrammableSwitchOutputState: accessory.context.ProgrammableSwitchOutputState ?? 0,
+    // Initialize StatefulProgrammableSwitch property (Hold Switch)
+    if (device.thermostat?.statefulStatus) {
+      this.debugLog(`${device.deviceClass} ${accessory.displayName} Add Hold Switch Service`)
+      accessory.context.StatefulProgrammableSwitch = accessory.context.StatefulProgrammableSwitch ?? {}
+      this.StatefulProgrammableSwitch = {
+        Name: accessory.context.StatefulProgrammableSwitch.Name ?? `${accessory.displayName} Hold Switch`,
+        Service: accessory.getService(this.hap.Service.StatefulProgrammableSwitch) ?? accessory.addService(this.hap.Service.StatefulProgrammableSwitch) as Service,
+        ProgrammableSwitchEvent: accessory.context.ProgrammableSwitchEvent ?? this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+        ProgrammableSwitchOutputState: accessory.context.ProgrammableSwitchOutputState ?? 0,
+      }
+      accessory.context.StatefulProgrammableSwitch = this.StatefulProgrammableSwitch as object
+
+      this.StatefulProgrammableSwitch.Service
+        .setCharacteristic(this.hap.Characteristic.Name, this.StatefulProgrammableSwitch.Name)
+        .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchEvent)
+        .setProps({
+          validValues: [this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS],
+        })
+        .onGet(() => {
+          return this.StatefulProgrammableSwitch!.ProgrammableSwitchEvent
+        })
+
+      this.StatefulProgrammableSwitch.Service
+        .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchOutputState)
+        .onGet(() => {
+          return this.StatefulProgrammableSwitch!.ProgrammableSwitchOutputState
+        })
+        .onSet(this.handleProgrammableSwitchOutputStateSet.bind(this))
+    } else {
+      if (this.StatefulProgrammableSwitch) {
+        this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Removing Hold Switch Service`)
+        this.StatefulProgrammableSwitch.Service = accessory.getService(this.hap.Service.StatefulProgrammableSwitch) as Service
+        accessory.removeService(this.StatefulProgrammableSwitch.Service)
+      } else {
+        this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Hold Switch Service Not Added`)
+      }
     }
-    accessory.context.StatefulProgrammableSwitch = this.StatefulProgrammableSwitch as object
-
-    this.StatefulProgrammableSwitch.Service
-      .setCharacteristic(this.hap.Characteristic.Name, this.StatefulProgrammableSwitch.Name)
-      .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchEvent)
-      .setProps({
-        validValues: [this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS],
-      })
-      .onGet(() => {
-        return this.StatefulProgrammableSwitch!.ProgrammableSwitchEvent
-      })
-
-    this.StatefulProgrammableSwitch.Service
-      .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchOutputState)
-      .onGet(() => {
-        return this.StatefulProgrammableSwitch!.ProgrammableSwitchOutputState
-      })
-      .onSet(this.handleProgrammableSwitchOutputStateSet.bind(this))
 
     // Intial Refresh
     this.refreshStatus()
@@ -520,6 +531,27 @@ export class Thermostats extends deviceBase {
     // Set the Room Priority Status - T9 Only
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat' && this.device.deviceModel === 'T9-T10') {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} roomPriorityStatus: ${JSON.stringify(this.roomPriorityStatus)}`)
+    }
+
+    // Update StatefulProgrammableSwitch based on hold status
+    if (this.StatefulProgrammableSwitch && this.device.changeableValues?.thermostatSetpointStatus) {
+      const holdStatus = this.device.changeableValues.thermostatSetpointStatus
+      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus thermostatSetpointStatus: ${holdStatus}`)
+
+      // Switch reflects hold status: OFF (0) when on hold, ON (1) when no hold (schedule active)
+      if (holdStatus === 'NoHold') {
+        this.StatefulProgrammableSwitch.ProgrammableSwitchOutputState = 1
+        this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} No hold active - switch state: ON`)
+      } else {
+        // 'TemporaryHold' or 'PermanentHold'
+        this.StatefulProgrammableSwitch.ProgrammableSwitchOutputState = 0
+        this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} Hold active (${holdStatus}) - switch state: OFF`)
+
+        // Log holdUntil if available
+        if (this.device.changeableValues.holdUntil) {
+          this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} Hold until: ${this.device.changeableValues.holdUntil}`)
+        }
+      }
     }
   }
 
@@ -894,6 +926,12 @@ export class Thermostats extends deviceBase {
         }
       }
     }
+
+    // Update StatefulProgrammableSwitch characteristic
+    if (this.StatefulProgrammableSwitch?.ProgrammableSwitchOutputState !== undefined) {
+      this.StatefulProgrammableSwitch.Service.updateCharacteristic(this.hap.Characteristic.ProgrammableSwitchOutputState, this.StatefulProgrammableSwitch.ProgrammableSwitchOutputState)
+      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} updateCharacteristic ProgrammableSwitchOutputState: ${this.StatefulProgrammableSwitch.ProgrammableSwitchOutputState}`)
+    }
   }
 
   async apiError(e: any): Promise<void> {
@@ -981,7 +1019,15 @@ export class Thermostats extends deviceBase {
    * Handle requests to set the "Programmable Switch Output State" characteristic
    */
   handleProgrammableSwitchOutputStateSet(value: CharacteristicValue) {
-    this.debugLog('Triggered SET ProgrammableSwitchOutputState:', value)
+    this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} Triggered SET ProgrammableSwitchOutputState: ${value}`)
+
+    if (value === 1) {
+      // Switch ON: Remove hold and return to schedule
+      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} Setting thermostat to NoHold to return to schedule`)
+      this.thermostatSetpointStatus = 'NoHold'
+      this.doThermostatUpdate.next()
+    }
+    // Note: Switch OFF doesn't change anything - it just reflects current hold status
   }
 
   /**

@@ -20,6 +20,7 @@ const LocationURL = 'https://api.honeywell.com/v2/locations'
 interface CustomRequestResponse {
   status: string
   data?: any
+  message?: string
 }
 
 interface Credentials {
