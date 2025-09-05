@@ -192,7 +192,6 @@ export const featureOptions = [
     description: 'Allow invalid characters in device names.',
     default: false,
   },
-
   // Logging category - Logging options
   {
     name: 'Logging.Suppress',

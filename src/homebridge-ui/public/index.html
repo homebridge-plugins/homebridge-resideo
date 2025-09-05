@@ -98,6 +98,8 @@
       <p class="mb-0">Select a device below to view its details and configure its settings using the feature options system.</p>
    </div>
    <div id="deviceInfo">
+      <h5>Cached Devices</h5>
+      <p>These are devices already configured in Homebridge:</p>
       <form>
          <div class="form-group">
             <label for="deviceSelect"><strong>Available Devices:</strong></label>
@@ -140,6 +142,29 @@
                <th scope="row">Firmware Version</th>
                <td id="firmwareRevision"></td>
             </tr>
+         </tbody>
+      </table>
+   </div>
+   
+   <hr class="my-4">
+   
+   <div id="availableDevices">
+      <h5>Available Devices from Resideo</h5>
+      <p>These are all devices found in your Resideo account. Use the Device ID to add new devices to your configuration:</p>
+      <button type="button" class="btn btn-primary mb-3" id="refreshDevicesButton">Refresh Device List</button>
+      <div id="availableDevicesMessage" style="display: none;" class="alert alert-info" role="alert"></div>
+      <table class="table w-100" id="availableDevicesTable" style="display: none;">
+         <thead>
+            <tr class="table-active">
+               <th scope="col">Device Name</th>
+               <th scope="col">Device ID</th>
+               <th scope="col">Device Class</th>
+               <th scope="col">Model</th>
+               <th scope="col">Location</th>
+               <th scope="col">Status</th>
+            </tr>
+         </thead>
+         <tbody id="availableDevicesTableBody">
          </tbody>
       </table>
    </div>
@@ -361,8 +386,6 @@
             'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
          );
       };
-
-      // webUi.show() handles all menu setup internally
    };
 
    // Show the webUI
