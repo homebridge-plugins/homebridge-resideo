@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [3.1.1](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.1) (2025-09-05)
+
+### What's Changes
+- Fix shutoff valve API endpoints to use correct Resideo shutoffvalve endpoints, resolves [#887](https://github.com/homebridge-plugins/homebridge-resideo/issues/887)
+  - Corrected API endpoints from `/waterLeakDetectors/{deviceID}` to `/shutoffvalve/{deviceID}` for status retrieval
+  - Updated valve control API from POST `/waterLeakDetectors/{deviceID}` to PUT `/shutoffvalve/{deviceID}/control`
+  - Ensures proper communication with Resideo's shutoff valve API for accurate device control and status updates
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.1.0...v3.1.1
+
 ## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.1.0) (2025-09-05)
 
 ### What's Changes
