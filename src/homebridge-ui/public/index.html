@@ -261,9 +261,12 @@
          onStart: () => {
             // Initialize first run form
             const currentConfig = homebridge.getPluginConfig();
-            if (currentConfig[0]?.credentials) {
+            if (Array.isArray(currentConfig) && currentConfig.length > 0 && currentConfig[0].credentials) {
                document.getElementById('firstRunKey').value = currentConfig[0].credentials.consumerKey || '';
                document.getElementById('firstRunSecret').value = currentConfig[0].credentials.consumerSecret || '';
+            } else {
+               document.getElementById('firstRunKey').value = '';
+               document.getElementById('firstRunSecret').value = '';
             }
             return true;
          },
