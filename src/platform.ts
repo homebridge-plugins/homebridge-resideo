@@ -319,7 +319,17 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
                 this.debugLog(`Config deviceID: ${deviceID}`)
                 return { ...device, deviceID }
               }))
-            : deviceLists.map((v: any) => v)
+            : deviceLists.map((device: resideoDevice) => {
+                const deviceID = String(device.deviceID).trim()
+                this.debugLog(`Device List deviceID: ${deviceID} (no config, using defaults)`)
+                return { 
+                  ...device, 
+                  deviceID,
+                  configDeviceName: device.userDefinedDeviceName, // Use API name as default
+                  hide_device: false, // Show device by default
+                  external: false, // Platform device by default
+                } as resideoDevice & devicesConfig
+              })
           for (const device of devices) {
             this.debugLog(`Discovered Device with Config: ${JSON.stringify(device)}`)
             await this.deviceClass(location, device)
@@ -767,7 +777,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       this.debugLog('The client has exceeded the number of requests allowed for a given time window.')
     } else if (e.message.includes('500')) {
       this.errorLog(`Failed to ${this.action}: Internal Server Error`)
-      this.debugLog('An unexpected error on the SmartThings servers has occurred. These errors should be rare.')
+      this.debugLog('An unexpected error on the Resideo servers has occurred. These errors should be rare.')
     } else {
       this.errorLog(`Failed to ${this.action}`)
     }
@@ -792,7 +802,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         this.errorLog(`Too Many Requests, statusCode: ${statusCode}, Action: ${action}`)
         break
       case 500:
-        this.errorLog(`Internal Server Error (Meater Server), statusCode: ${statusCode}, Action: ${action}`)
+        this.errorLog(`Internal Server Error (Resideo Server), statusCode: ${statusCode}, Action: ${action}`)
         break
       default:
         this.infoLog(`Unknown statusCode: ${statusCode}, Report Bugs Here: https://bit.ly/homebridge-resideo-bug-report. Action: ${action}`)

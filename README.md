@@ -56,12 +56,30 @@ plugin allows you to access your Resideo Device(s) from HomeKit with
 
 ## Supported Resideo Devices
 
-- [T10 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t10-pro-smart-thermostat-with-redlinkr-room-sensor-thx321wfs2001w-u/) - Already HomeKit Certified
-- [T9 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t9-smart-thermostat-with-sensor-rcht9610wfsw2003-u/) - Already HomeKit Certified
+### Thermostats
+
+This plugin supports **any Resideo/Honeywell thermostat** that appears in your Resideo account, including:
+
+#### WiFi-enabled Thermostats (Already HomeKit Certified)
+- [T10 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t10-pro-smart-thermostat-with-redlinkr-room-sensor-thx321wfs2001w-u/)
+- [T9 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t9-smart-thermostat-with-sensor-rcht9610wfsw2003-u/)
   - [T9 Smart Roomsensors](https://www.resideo.com/us/en/products/air/thermostat-accessories/t9-smart-sensor-rchtsensor-1pk-u/)
-- [T6 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t6-pro-smart-thermostat-multi-stage-3-heat-2-cool-th6320wf2003-u/) - Already HomeKit Certified
-- [T5 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t5-smart-thermostat-with-c-wire-adapter-rcht8612wf2005-u/) - Already HomeKit Certified
-- [Round Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/the-round-smart-thermostat-rch9310wf5003-u/) - Already HomeKit Certified
-- Some Total Comfort Control Thermostats
-  - Pushing Commands may not be supported on some.
+- [T6 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t6-pro-smart-thermostat-multi-stage-3-heat-2-cool-th6320wf2003-u/)
+- [T5 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t5-smart-thermostat-with-c-wire-adapter-rcht8612wf2005-u/)
+- [Round Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/the-round-smart-thermostat-rch9310wf5003-u/)
+
+#### Total Comfort Control (TCC) Thermostats
+- Most Total Comfort Control thermostats, including:
+  - T40 series (e.g., TTHWFP Wireless Programmable Room Thermostat)
+  - RTH series programmable thermostats
+  - Other TCC-compatible models
+
+**Note:** If your thermostat appears in your Resideo account at [account.honeywellhome.com](https://account.honeywellhome.com), it should work with this plugin. Command pushing (setting temperature, mode changes) may not be supported on some older TCC models.
+
+### Other Devices
+
 - [WiFi Water Leak & Freeze Detector](https://www.resideo.com/us/en/products/water/spot-leak-detection/wifi-water-leak-freeze-detector-rchw3610wf1001-u/)
+
+### Unsupported Devices
+
+**Smoke/CO2 Detectors**: While Resideo manufactures smart smoke and carbon monoxide detectors (such as the SC5 series), these devices are **not supported** by this plugin because they are not included in the [Resideo Developer API](https://developer.honeywellhome.com/api-methods). Without API endpoints for smoke detectors, the plugin cannot communicate with or control these devices. Support may be added in the future if Resideo expands their API to include smoke detector endpoints.
