@@ -40,11 +40,24 @@ export class PluginUiServer extends HomebridgePluginUiServer {
   public key!: string
   public secret!: string
   public hostname!: string
+  private runningServer?: http.Server
 
   constructor() {
     super()
     this.onRequest('Start Resideo Login Server', (): CustomRequestResponse | Promise<CustomRequestResponse> => {
-      const runningServer = http.createServer(async (req, res) => {
+      // If server is already running, return success without creating a new one
+      if (this.runningServer && this.runningServer.listening) {
+        console.log('Server is already running')
+        return { status: 'ok' }
+      }
+
+      // Close any existing server before creating a new one
+      if (this.runningServer) {
+        this.runningServer.close()
+        this.runningServer = undefined
+      }
+
+      this.runningServer = http.createServer(async (req, res) => {
         try {
           res.writeHead(200, { 'Content-Type': 'text/html' })
           const reqUrl = new URL(req.url ?? '', `http://${req.headers.host}`)
@@ -107,7 +120,7 @@ export class PluginUiServer extends HomebridgePluginUiServer {
           console.log(err)
         }
       })
-      runningServer.listen(8585, (err?: Error) => {
+      this.runningServer.listen(8585, (err?: Error) => {
         if (err) {
           console.log(err)
         } else {
@@ -116,7 +129,10 @@ export class PluginUiServer extends HomebridgePluginUiServer {
       })
 
       setTimeout(() => {
-        runningServer.close()
+        if (this.runningServer) {
+          this.runningServer.close()
+          this.runningServer = undefined
+        }
       }, 300000)
 
       // Return a response to satisfy the expected return type
