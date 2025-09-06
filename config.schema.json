@@ -4,609 +4,135 @@
   "singular": true,
   "customUi": true,
   "customUiPath": "./dist/homebridge-ui",
-  "headerDisplay": "<p align='center'><img width='250px' src='https://user-images.githubusercontent.com/3979615/71876008-d99d7400-3179-11ea-909b-9d2a3d1e670f.png'></p>\n\nThe **Homebridge Resideo** plugin allows you to control Resideo thermostats and also view your Leak and Room Sensors from HomeKit. \n\nTo get started link your Resideo account using the button below.",
-  "footerDisplay": "Your Resideo account has been linked. Please raise any issues on our [project page](https://github.com/homebridge-plugins/homebridge-resideo/issues).\n\nIf you would like to have other Resideo Devices besides Thermostat, Leak Sensors, or Room Sensors added to this plugin fill out [Feature Request Form](https://github.com/homebridge-plugins/homebridge-resideo/issues/new?assignees=&labels=&template=feature_request.md).",
+  "headerDisplay": "<p align='center'><img width='250px' src='https://user-images.githubusercontent.com/3979615/71876008-d99d7400-3179-11ea-909b-9d2a3d1e670f.png'></p>\n\nThe **Homebridge Resideo** plugin allows you to control Resideo thermostats and also view your Leak and Room Sensors from HomeKit. \n\nTo get started link your Resideo account using the Dynamic UI below.",
+  "footerDisplay": "Your Resideo account has been linked. Device configuration is handled through the Dynamic UI. Please raise any issues on our [project page](https://github.com/homebridge-plugins/homebridge-resideo/issues).",
   "schema": {
     "type": "object",
     "properties": {
       "name": {
         "type": "string",
-        "title": "Name",
-        "default": "Resideo"
+        "title": "Platform Name",
+        "default": "Resideo",
+        "description": "The name that will appear in your Homebridge log."
       },
       "credentials": {
         "type": "object",
+        "title": "Resideo API Credentials",
+        "description": "Your Resideo developer account credentials for API access.",
         "properties": {
           "consumerKey": {
             "title": "Consumer Key",
             "type": "string",
-            "x-schema-form": {
-              "type": "consumerKey"
-            }
+            "description": "Your Resideo developer account Consumer Key."
           },
           "consumerSecret": {
             "title": "Consumer Secret",
             "type": "string",
-            "x-schema-form": {
-              "type": "customerSecret"
-            }
+            "description": "Your Resideo developer account Consumer Secret."
+          },
+          "accessToken": {
+            "title": "Access Token",
+            "type": "string",
+            "description": "OAuth access token (automatically managed)."
           },
           "refreshToken": {
             "title": "Refresh Token",
             "type": "string",
-            "x-schema-form": {
-              "type": "refreshToken"
-            }
-          },
-          "notice": {
-            "title": "Notice",
-            "type": "string",
-            "default": "Keep your tokens a secret!"
+            "description": "OAuth refresh token (automatically managed)."
           }
         },
-        "required": ["consumerKey", "consumerSecret", "refreshToken", "notice"]
+        "required": ["consumerKey", "consumerSecret"]
       },
       "options": {
         "type": "object",
+        "title": "Global Settings",
+        "description": "Platform-wide configuration options. Device-specific settings are configured through the Dynamic UI.",
         "properties": {
-          "devices": {
-            "type": "array",
-            "items": {
-              "title": "Devices",
-              "type": "object",
-              "properties": {
-                "deviceID": {
-                  "title": "Device ID",
-                  "type": "string",
-                  "placeholder": "81F3UT59513F"
-                },
-                "configDeviceName": {
-                  "title": "Device Name",
-                  "type": "string",
-                  "pattern": "^[a-zA-Z0-9]+([a-zA-Z0-9 ]*[a-zA-Z0-9]+)?$",
-                  "placeholder": "Hallway Thermostat",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "hide_device": {
-                  "title": "Hide Device",
-                  "type": "boolean",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "deviceClass": {
-                  "title": "Device Class",
-                  "type": "string",
-                  "oneOf": [
-                    {
-                      "title": "Thermostat",
-                      "enum": ["Thermostat"]
-                    },
-                    {
-                      "title": "Leak Sensor",
-                      "enum": ["LeakDetector"]
-                    },
-                    {
-                      "title": "Shut Off Valve",
-                      "enum": ["ShutoffValve"]
-                    }
-                  ],
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].deviceID && !model.options.devices[arrayIndices].hide_device);"
-                  }
-                },
-                "deviceModel": {
-                  "title": "Thermostat Model",
-                  "type": "string",
-                  "placeholder": "T5",
-                  "typeahead": {
-                    "source": ["T9", "T10", "T5", "T6", "Round"]
-                  },
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].deviceID && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat');"
-                  }
-                },
-                "thermostat": {
-                  "type": "object",
-                  "properties": {
-                    "show_auto": {
-                      "title": "Show Auto Mode",
-                      "description": "Will show Auto mode, even if device API doesn't show it.",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "hide_fan": {
-                      "title": "Hide Thermostat Fan",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "hide_humidity": {
-                      "title": "Hide Thermostat Humidity Service",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "statefulStatus": {
-                      "title": "Enable Stateful Programmable Switch (Only Works in 3rd Party Home Apps) for Automations on NoHold, TemporaryHold, PermanentHold",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "thermostatSetpointStatus": {
-                      "title": "Thermostat Setpoint Status (LCC Devices Only)",
-                      "type": "string",
-                      "description": "[PermanentHold] will hold the setpoint until user requests another change.\n[NoHold] will return to schedule.\n[TemporaryHold] will hold the set temperature until next schedule.",
-                      "placeholder": "PermanentHold",
-                      "oneOf": [
-                        {
-                          "title": "Permanent Hold",
-                          "enum": ["PermanentHold"]
-                        },
-                        {
-                          "title": "No Hold",
-                          "enum": ["NoHold"]
-                        },
-                        {
-                          "title": "Temporary Hold",
-                          "enum": ["TemporaryHold"]
-                        }
-                      ],
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10' || model.options.devices[arrayIndices].deviceModel === 'T5' || model.options.devices[arrayIndices].deviceModel === 'T6'));"
-                      }
-                    },
-                    "roompriority": {
-                      "title": "Room Priority Settings (T9-T10 Only)",
-                      "type": "object",
-                      "properties": {
-                        "deviceType": {
-                          "title": "Display As",
-                          "type": "string",
-                          "oneOf": [
-                            {
-                              "title": "Thermostat",
-                              "enum": ["Thermostat"]
-                            }
-                          ],
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        },
-                        "priorityType": {
-                          "title": "Priority Type",
-                          "type": "string",
-                          "placeholder": "PickARoom",
-                          "oneOf": [
-                            {
-                              "title": "Pick A Room",
-                              "enum": ["PickARoom"]
-                            },
-                            {
-                              "title": "Whole House",
-                              "enum": ["WholeHouse"]
-                            },
-                            {
-                              "title": "Follow Me",
-                              "enum": ["FollowMe"]
-                            }
-                          ],
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        },
-                        "refreshRate": {
-                          "title": "Room Sensor Thermostat Refresh Rate",
-                          "type": "number",
-                          "minimum": 30,
-                          "placeholder": 360,
-                          "description": "Indicates the number of seconds between polls of Resideo API.",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        },
-                        "pushRate": {
-                          "title": "Room Sensor Thermostat Push Rate",
-                          "type": "number",
-                          "minimum": 30,
-                          "placeholder": 360,
-                          "description": "Indicates the number of seconds between pushes to the Resideo API.",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        },
-                        "logging": {
-                          "title": "Room Sensor Thermostat Logging Override Setting",
-                          "type": "string",
-                          "required": true,
-                          "default": "",
-                          "oneOf": [
-                            {
-                              "title": "Default Logging",
-                              "enum": [""]
-                            },
-                            {
-                              "title": "Standard Logging",
-                              "enum": ["standard"]
-                            },
-                            {
-                              "title": "No Logging",
-                              "enum": ["none"]
-                            },
-                            {
-                              "title": "Debug Logging",
-                              "enum": ["debug"]
-                            }
-                          ],
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        }
-                      },
-                      "required": ["deviceType", "priorityType", "logging"],
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                      }
-                    },
-                    "roomsensor": {
-                      "title": "Room Sensor Settings (T9-T10 Only)",
-                      "type": "object",
-                      "properties": {
-                        "hide_roomsensor": {
-                          "title": "Hide Roomsensor(s)",
-                          "type": "boolean",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10'));"
-                          }
-                        },
-                        "hide_temperature": {
-                          "title": "Hide Roomsensor Temperature Service",
-                          "type": "boolean",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        },
-                        "hide_humidity": {
-                          "title": "Hide Roomsensor Humidity Service",
-                          "type": "boolean",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        },
-                        "hide_occupancy": {
-                          "title": "Hide Roomsensor Occupancy Service",
-                          "type": "boolean",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        },
-                        "refreshRate": {
-                          "title": "Room Sensor Refresh Rate",
-                          "type": "number",
-                          "minimum": 30,
-                          "placeholder": 360,
-                          "description": "Indicates the number of seconds between polls of Resideo API.",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        },
-                        "pushRate": {
-                          "title": "Room Sensor Push Rate",
-                          "type": "number",
-                          "minimum": 30,
-                          "placeholder": 360,
-                          "description": "Indicates the number of seconds between pushes to the Resideo API.",
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        },
-                        "logging": {
-                          "title": "Room Sensor Logging Override Setting",
-                          "type": "string",
-                          "required": true,
-                          "default": "",
-                          "oneOf": [
-                            {
-                              "title": "Default Logging",
-                              "enum": [""]
-                            },
-                            {
-                              "title": "Standard Logging",
-                              "enum": ["standard"]
-                            },
-                            {
-                              "title": "No Logging",
-                              "enum": ["none"]
-                            },
-                            {
-                              "title": "Debug Logging",
-                              "enum": ["debug"]
-                            }
-                          ],
-                          "condition": {
-                            "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                          }
-                        }
-                      },
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && (model.options.devices[arrayIndices].deviceModel === 'T9' || model.options.devices[arrayIndices].deviceModel === 'T10') && !model.options.devices[arrayIndices].thermostat.roomsensor.hide_roomsensor);"
-                      },
-                      "required": ["logging"]
-                    }
-                  }
-                },
-                "leaksensor": {
-                  "title": "Leak Sensor",
-                  "type": "object",
-                  "properties": {
-                    "hide_leak": {
-                      "title": "Hide Leak Service",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'LeakDetector' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "hide_temperature": {
-                      "title": "Hide Temperature Service",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'LeakDetector' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    },
-                    "hide_humidity": {
-                      "title": "Hide Humidity Service",
-                      "type": "boolean",
-                      "condition": {
-                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'LeakDetector' && model.options.devices[arrayIndices].deviceID);"
-                      }
-                    }
-                  }
-                },
-                "retry": {
-                  "title": "Retry",
-                  "type": "boolean",
-                  "description": "Retry after receiving a Resideo API Error.",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "external": {
-                  "title": "External Accessory",
-                  "type": "boolean",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && model.options.devices[arrayIndices].deviceID && !model.options.devices[arrayIndices].hide_device);"
-                  }
-                },
-                "firmware": {
-                  "title": "Firmware Override",
-                  "type": "string",
-                  "placeholder": "1.2.8",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "refreshRate": {
-                  "title": "Device Refresh Rate",
-                  "type": "number",
-                  "minimum": 30,
-                  "placeholder": 360,
-                  "description": "Indicates the number of seconds between polls of Resideo API.",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && (model.options.devices[arrayIndices].deviceClass === 'Thermostat' || model.options.devices[arrayIndices].deviceClass === 'LeakDetector') && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "pushRate": {
-                  "title": "Device Push Rate",
-                  "type": "number",
-                  "placeholder": 1,
-                  "description": "Indicates the number of seconds between pushes to the of Resideo API.",
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && (model.options.devices[arrayIndices].deviceClass === 'Thermostat' || model.options.devices[arrayIndices].deviceClass === 'LeakDetector') && model.options.devices[arrayIndices].deviceID);"
-                  }
-                },
-                "logging": {
-                  "title": "Device Logging Override Setting",
-                  "type": "string",
-                  "required": true,
-                  "default": "",
-                  "oneOf": [
-                    {
-                      "title": "Default Logging",
-                      "enum": [""]
-                    },
-                    {
-                      "title": "Standard Logging",
-                      "enum": ["standard"]
-                    },
-                    {
-                      "title": "No Logging",
-                      "enum": ["none"]
-                    },
-                    {
-                      "title": "Debug Logging",
-                      "enum": ["debug"]
-                    }
-                  ],
-                  "condition": {
-                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && (model.options.devices[arrayIndices].deviceClass === 'Thermostat' || model.options.devices[arrayIndices].deviceClass === 'LeakDetector') && model.options.devices[arrayIndices].deviceID);"
-                  }
-                }
-              },
-              "required": ["deviceID", "deviceClass", "logging"]
-            }
-          },
           "refreshRate": {
-            "title": "Refresh Rate",
+            "title": "Default Refresh Rate (seconds)",
             "type": "number",
             "minimum": 30,
-            "placeholder": 120,
-            "description": "Indicates the number of seconds between polls of the Resideo service."
+            "default": 120,
+            "description": "How often to poll the Resideo API for device updates (minimum 30 seconds)."
           },
           "pushRate": {
-            "title": "Push Rate",
+            "title": "Default Push Rate (seconds)",
             "type": "number",
-            "placeholder": 1,
-            "description": "Indicates the number of seconds between pushes to Honewell Home API."
+            "minimum": 1,
+            "default": 1,
+            "description": "Minimum time between commands sent to the Resideo API."
           },
           "logging": {
-            "title": "Logging Setting",
+            "title": "Global Logging Level",
             "type": "string",
-            "required": true,
-            "default": "",
+            "default": "standard",
             "oneOf": [
               {
-                "title": "Default Logging",
-                "enum": [""]
-              },
-              {
-                "title": "Standard Logging",
-                "enum": ["standard"]
-              },
-              {
-                "title": "No Logging",
+                "title": "None",
                 "enum": ["none"]
               },
               {
-                "title": "Debug Logging",
+                "title": "Standard",
+                "enum": ["standard"]
+              },
+              {
+                "title": "Debug",
                 "enum": ["debug"]
               }
-            ]
+            ],
+            "description": "Set the logging level for the entire platform."
           },
           "allowInvalidCharacters": {
-            "title": "Allow Invalid Characters",
+            "title": "Allow Invalid Characters in Names",
             "type": "boolean",
-            "description": "If true, invalid characters will be allowed in the device name."
+            "default": false,
+            "description": "Allow special characters in device names that might cause issues in HomeKit."
           }
-        },
-        "required": ["logging"]
+        }
       }
     },
     "required": ["name", "credentials"]
   },
   "layout": [
     {
+      "type": "help",
+      "helpvalue": "<div class='alert alert-info'><h5>First-Time Setup</h5><p>This plugin uses a modern Dynamic UI powered by homebridge-plugin-utils for device configuration.</p><p><strong>Manual Configuration:</strong> If you need to manually configure credentials, expand the section below. Otherwise, use the Dynamic UI for a guided setup experience.</p></div>"
+    },
+    {
       "type": "fieldset",
-      "title": "Resideo Account Info",
+      "title": "Manual Credentials Setup (Advanced Users Only)",
       "expandable": true,
       "expanded": false,
       "items": [
         {
           "type": "help",
-          "helpvalue": "<h5></h5><em class='primary-text'>This is for Manual Setup Only.</em>"
+          "helpvalue": "<div class='alert alert-warning'><strong>Note:</strong> These credentials can be configured automatically through the Dynamic UI. Manual setup is only recommended for advanced users.</div>"
         },
         "credentials.consumerKey",
         "credentials.consumerSecret",
+        "credentials.accessToken",
         "credentials.refreshToken"
       ]
     },
     {
       "type": "fieldset",
-      "title": "Resideo Device Settings",
+      "title": "Global Platform Settings",
       "expandable": true,
       "expanded": false,
       "items": [
         {
-          "key": "options.devices",
-          "notitle": true,
-          "type": "tabarray",
-          "title": "{{ value.configDeviceName || value.deviceID || 'New Resideo Device' }}",
-          "expandable": true,
-          "expanded": false,
-          "orderable": false,
-          "items": [
-            "options.devices[].configDeviceName",
-            "options.devices[].deviceID",
-            "options.devices[].hide_device",
-            "options.devices[].deviceClass",
-            "options.devices[].deviceModel",
-            "options.devices[].thermostat.show_auto",
-            "options.devices[].thermostat.hide_fan",
-            "options.devices[].thermostat.hide_humidity",
-            "options.devices[].thermostat.statefulStatus",
-            "options.devices[].thermostat.thermostatSetpointStatus",
-            "options.devices[].leaksensor.hide_leak",
-            "options.devices[].leaksensor.hide_temperature",
-            "options.devices[].leaksensor.hide_humidity",
-            {
-              "key": "options.devices[].thermostat.roompriority",
-              "type": "fieldset",
-              "expandable": true,
-              "expanded": false,
-              "items": [
-                "options.devices[].thermostat.roompriority.deviceType",
-                "options.devices[].thermostat.roompriority.priorityType",
-                {
-                  "key": "options.devices[].thermostat.roompriority.refreshRate",
-                  "description": "<em class='primary-text'>Specifies the interval, in seconds, for retrieving the latest device status from the Resido API. This interval applies only to this specific device's roompriority Thermostat(s).</em>"
-                },
-                {
-                  "key": "options.devices[].thermostat.roompriority.pushRate",
-                  "description": "<em class='primary-text'>Specifies the interval, in seconds, between pushes to the Resideo API for this specific device's roompriority Thermostat(s).</em>"
-                },
-                "options.devices[].thermostat.roompriority.logging"
-              ]
-            },
-            {
-              "key": "options.devices[].thermostat.roomsensor",
-              "type": "fieldset",
-              "expandable": true,
-              "expanded": false,
-              "items": [
-                "options.devices[].thermostat.roomsensor.hide_roomsensor",
-                "options.devices[].thermostat.roomsensor.hide_temperature",
-                "options.devices[].thermostat.roomsensor.hide_humidity",
-                "options.devices[].thermostat.roomsensor.hide_occupancy",
-                {
-                  "key": "options.devices[].thermostat.roomsensor.refreshRate",
-                  "description": "<em class='primary-text'>Specifies the interval, in seconds, for retrieving the latest device status from the Resido API. This interval applies only to this specific device's roomsensor(s).</em>"
-                },
-                {
-                  "key": "options.devices[].thermostat.roomsensor.pushRate",
-                  "description": "<em class='primary-text'>Specifies the interval, in seconds, between pushes to the Resideo API for this specific device's roomsensor(s).</em>"
-                },
-                "options.devices[].thermostat.roomsensor.logging"
-              ]
-            },
-            "options.devices[].retry",
-            "options.devices[].firmware",
-            "options.devices[].external",
-            {
-              "key": "options.devices[].refreshRate",
-              "description": "<em class='primary-text'>Specifies the interval, in seconds, for retrieving the latest device status from the Resido API. This interval applies only to this specific device.</em>"
-            },
-            {
-              "key": "options.devices[].pushRate",
-              "description": "<em class='primary-text'>Specifies the interval, in seconds, between pushes to the Resideo API for this specific device.</em>"
-            },
-            "options.devices[].logging"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "fieldset",
-      "title": "Advanced Settings",
-      "expandable": true,
-      "expanded": false,
-      "items": [
-        {
-          "key": "options.refreshRate",
-          "description": "<em class='primary-text'>Specifies the interval, in seconds, for retrieving the latest device status from the Resido API.</em>"
+          "type": "help",
+          "helpvalue": "<em class='text-muted'>These settings apply to all devices. Individual device configuration is handled through the Dynamic UI.</em>"
         },
-        {
-          "key": "options.pushRate",
-          "description": "<em class='primary-text'>Specifies the interval, in seconds, between pushes to the Resideo API.</em>"
-        },
+        "options.refreshRate",
+        "options.pushRate", 
         "options.logging",
         "options.allowInvalidCharacters"
       ]
+    },
+    {
+      "type": "help",
+      "helpvalue": "<div class='alert alert-success'><h5>Device Configuration</h5><p>All device-specific settings (hide devices, thermostat options, room sensor settings, etc.) are now configured through the <strong>Dynamic UI</strong> above.</p><p>The Dynamic UI provides an intuitive interface for:</p><ul><li>Device discovery and selection</li><li>Individual device configuration</li><li>Feature options management</li><li>Real-time device status</li></ul></div>"
     }
   ]
 }
