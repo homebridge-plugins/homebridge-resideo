@@ -35,13 +35,10 @@
    </div>
 </div>
 <div id="menuWrapper" class="btn-group w-100 mb-0" role="group" aria-label="UI Menu" style="display: none;">
-   <button type="button" class="btn btn-primary ml-0" id="menuAccount">
-      Account
-   </button>
    <button type="button" class="btn btn-primary" id="menuSettings">
       Settings
    </button>
-   <button type="button" class="btn btn-primary" id="menuDevices">
+   <button type="button" class="btn btn-primary" id="menuFeatureOptions">
       Devices
    </button>
    <button type="button" class="btn btn-primary mr-0" id="menuHome">
@@ -67,82 +64,9 @@
       <button type="button" class="btn btn-primary" id="firstRun">Setup Account &rarr;</button>
    </div>
 </div>
-<div id="pageAccount" class="mt-4" style="display: none;">
-   <div class="alert alert-warning" style="display: none;" id="validateForm">
-      Please enter both values
-   </div>
-   <div class="alert alert-success" style="display: none;" id="linkSuccess">
-      Config saved, please close this window and restart Homebridge
-   </div>
-   <div class="form-group">
-      <label for="inputConsumerKey">Consumer Key <span class="text-danger">*</span></label>
-      <input type="text" class="form-control" id="inputConsumerKey">
-   </div>
-   <div class="form-group">
-      <label for="inputConsumerSecret">Consumer Secret <span class="text-danger">*</span></label>
-      <input type="text" class="form-control" id="inputConsumerSecret">
-   </div>
-   <div class="form-group text-center">
-      <button type="button" class="btn btn-primary" id="backToIntro">&larr;</button>
-      <button type="button" class="btn btn-primary" id="linkButton">Continue &rarr;</button>
-      <button type="button" class="btn btn-danger" id="unLinkButton">Unlink Account &rarr;</button>
-   </div>
-</div>
 <!-- Dynamic device configuration UI will be rendered here by webUI -->
 <div id="pageFeatureOptions" class="mt-4" style="display: none;">
-</div>
-<div id="pageDevices" class="mt-4" style="display: none;">
-   <div class="alert alert-info" id="deviceConfigInfo">
-      <h5>Device Configuration Made Easy</h5>
-      <p class="mb-2">This section shows devices available from your Resideo account and provides dynamic configuration options.</p>
-      <p class="mb-0">Select a device below to view its details and configure its settings using the feature options system.</p>
-   </div>
-   <div id="deviceInfo">
-      <form>
-         <div class="form-group">
-            <label for="deviceSelect"><strong>Available Devices:</strong></label>
-            <select class="form-control" id="deviceSelect"></select>
-         </div>
-      </form>
-      <div id="quickConfigSection" style="display: none;" class="mt-3">
-         <div class="alert alert-success">
-            <h6>Quick Configuration</h6>
-            <p class="mb-2">Copy the device ID below and paste it into the plugin settings:</p>
-            <div class="input-group">
-               <input type="text" class="form-control" id="quickDeviceID" readonly>
-               <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="copyDeviceID">Copy</button>
-               </div>
-            </div>
-            <small class="form-text text-muted mt-2">
-               Recommended device class: <span id="recommendedClass"></span><br>
-               Suggested device model: <span id="suggestedModel"></span>
-            </small>
-         </div>
-      </div>
-      <table class="table w-100" id="deviceTable" style="display: none;">
-         <thead>
-            <tr class="table-active">
-               <th scope="col" style="width: 40%;">Device Name</th>
-               <th scope="col" style="width: 60%;" id="displayName"></th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr>
-               <th scope="row">Device ID</th>
-               <td id="deviceID"></td>
-            </tr>
-            <tr>
-               <th scope="row">Model</th>
-               <td id="model"></td>
-            </tr>
-            <tr>
-               <th scope="row">Firmware Version</th>
-               <td id="firmwareRevision"></td>
-            </tr>
-         </tbody>
-      </table>
-   </div>
+   <!-- Device feature options will be automatically rendered here by homebridge-plugin-utils webUi -->
 </div>
 <div id="pageSupport" class="mt-4" style="display: none;">
    <p class="text-center lead">Thank you for using <strong>homebridge-resideo</strong></p>
@@ -229,41 +153,41 @@
       },
       firstRun: {
          isRequired: () => {
-            // Check if we need to run first-time setup
+            // Always require setup for first version approach
             const currentConfig = homebridge.getPluginConfig();
-            return !currentConfig[0]?.credentials?.consumerKey || !currentConfig[0]?.credentials?.consumerSecret;
+            if (!Array.isArray(currentConfig) || !currentConfig[0]) {
+               return true;
+            }
+            const config = currentConfig[0];
+            return !config?.credentials?.consumerKey || !config?.credentials?.consumerSecret || !config?.credentials?.accessToken;
          },
          onStart: () => {
-            // Initialize first run form
-            const currentConfig = homebridge.getPluginConfig();
-            if (currentConfig[0]?.credentials) {
-               document.getElementById('firstRunKey').value = currentConfig[0].credentials.consumerKey || '';
-               document.getElementById('firstRunSecret').value = currentConfig[0].credentials.consumerSecret || '';
-            }
+            // Simple first run initialization - no legacy config handling
             return true;
          },
          onSubmit: async () => {
-            // Handle first run setup
-            const key = document.getElementById('firstRunKey').value;
-            const secret = document.getElementById('firstRunSecret').value;
+            // Handle first run setup with clean config creation
+            const key = document.getElementById('firstRunKey')?.value;
+            const secret = document.getElementById('firstRunSecret')?.value;
             const errorDiv = document.getElementById('loginError');
 
             if (!key || !secret) {
-               errorDiv.innerHTML = '<div class="alert alert-danger">Please enter both Consumer Key and Consumer Secret.</div>';
+               if (errorDiv) {
+                  errorDiv.innerHTML = '<div class="alert alert-danger">Please enter both Consumer Key and Consumer Secret.</div>';
+               }
                return false;
             }
 
             try {
-               // Test the credentials by attempting to link the account
-               const currentConfig = homebridge.getPluginConfig();
-               if (!currentConfig[0]) {
-                  currentConfig.push({ name: 'Resideo' });
-               }
-               
-               currentConfig[0].credentials = {
-                  consumerKey: key,
-                  consumerSecret: secret
-               };
+               // Create clean config structure for first version
+               const currentConfig = [{
+                  platform: 'Resideo',
+                  name: 'Resideo',
+                  credentials: {
+                     consumerKey: key,
+                     consumerSecret: secret
+                  }
+               }];
 
                await homebridge.updatePluginConfig(currentConfig);
                
@@ -291,19 +215,23 @@
                   const checkClosed = setInterval(() => {
                      if (popup.closed) {
                         clearInterval(checkClosed);
-                        // Check if credentials were updated
+                        // Check if authentication completed successfully
                         const updatedConfig = homebridge.getPluginConfig();
-                        if (updatedConfig[0]?.credentials?.accessToken) {
+                        if (Array.isArray(updatedConfig) && updatedConfig[0]?.credentials?.accessToken) {
                            resolve(true);
                         } else {
-                           errorDiv.innerHTML = '<div class="alert alert-danger">Authentication failed. Please try again.</div>';
+                           if (errorDiv) {
+                              errorDiv.innerHTML = '<div class="alert alert-danger">Authentication failed. Please try again.</div>';
+                           }
                            resolve(false);
                         }
                      }
                   }, 1000);
                });
             } catch (error) {
-               errorDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+               if (errorDiv) {
+                  errorDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+               }
                return false;
             }
          }
@@ -311,55 +239,41 @@
       name: 'homebridge-resideo'
    });
 
-   // Legacy functionality for existing UI elements
+   // Legacy functionality for existing UI elements - simplified for webUi compatibility
    const setupLegacyHandlers = () => {
-      const currentConfig = homebridge.getPluginConfig();
       const hostname = window.location.hostname;
       
       homebridge.addEventListener('creds-received', async event => {
          try {
             if (event.data.access && event.data.refresh) {
-               currentConfig[0].credentials = {
-                  consumerKey: event.data.key,
-                  consumerSecret: event.data.secret,
-                  accessToken: event.data.access,
-                  refreshToken: event.data.refresh
-               };
+               // Create clean config structure for first version
+               const currentConfig = [{
+                  platform: 'Resideo',
+                  name: 'Resideo',
+                  credentials: {
+                     consumerKey: event.data.key,
+                     consumerSecret: event.data.secret,
+                     accessToken: event.data.access,
+                     refreshToken: event.data.refresh
+                  }
+               }];
+               
                await homebridge.updatePluginConfig(currentConfig);
                await homebridge.savePluginConfig();
                homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
             }
          } catch (err) {
             console.log(err);
-            homebridge.toast.error('Try again, or see the console message for info.', 'Error');
+            homebridge.toast.error('Setup failed. Please try again.', 'Error');
          }
       });
 
       window.copyMyText = () => {
          const textToCopy = document.getElementById("copyMe");
-         textToCopy.select();
-         document.execCommand("copy");
-      };
-
-      window.linkAccount = async () => {
-         document.getElementById('validateForm').style.display = 'none';
-         if (!document.getElementById('inputConsumerKey').value || !document.getElementById('inputConsumerSecret').value) {
-            document.getElementById('validateForm').style.display = 'block';
-            return;
+         if (textToCopy) {
+            textToCopy.select();
+            document.execCommand("copy");
          }
-         const w = 450;
-         const h = 700;
-         const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
-         const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
-         const urlToOpen = 'http://' + hostname + ':8585/start?' +
-            'key=' + document.getElementById('inputConsumerKey').value +
-            '&secret=' + document.getElementById('inputConsumerSecret').value +
-            '&host=' + encodeURI(hostname);
-         window.popup = window.open(
-            urlToOpen, 'honeywell-auth',
-            'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
-            'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
-         );
       };
 
       // Initialize legacy components for backwards compatibility
@@ -367,11 +281,8 @@
    };
 
    const setupLegacyMenus = () => {
-      // Legacy menu functionality for account, devices, support
-      document.getElementById('menuAccount')?.addEventListener('click', () => showAccount());
-      document.getElementById('menuDevices')?.addEventListener('click', () => showDevices());
-      document.getElementById('menuHome')?.addEventListener('click', () => showSupport());
-      document.getElementById('menuSettings')?.addEventListener('click', () => showSettings());
+      // Legacy menu functionality removed for first version approach
+      // The webUi handles all navigation automatically
    };
 
    // Show the webUI
