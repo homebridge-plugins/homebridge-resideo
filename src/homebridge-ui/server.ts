@@ -373,19 +373,52 @@ export class PluginUiServer extends HomebridgePluginUiServer {
           })
         }
 
-        // Transform devices for webUI format
-        const webUIDevices = devices.map((device: any) => ({
-          name: device.userDefinedDeviceName || device.name || `Device ${device.deviceID}`,
-          serialNumber: device.deviceID,
-          firmwareRevision: device.deviceSettings?.firmware || 'Unknown',
-          manufacturer: 'Resideo',
-          model: device.deviceModel || device.deviceType || 'Unknown',
-          // Additional properties for the webUI
-          deviceID: device.deviceID,
-          deviceType: device.deviceType,
-          locationName: device.locationName,
-          locationId: device.locationId,
-        }))
+        // Transform devices for webUI format with enhanced metadata
+        const webUIDevices = devices.map((device: any) => {
+          // Determine device type and capabilities
+          const deviceType = getDeviceType(device)
+          const deviceModel = getDeviceModel(device)
+          const capabilities = getDeviceCapabilities(device)
+
+          return {
+            name: device.userDefinedDeviceName || device.name || `Device ${device.deviceID}`,
+            serialNumber: device.deviceID,
+            firmwareRevision: device.deviceSettings?.firmware || device.firmware || 'Unknown',
+            manufacturer: 'Resideo',
+            model: deviceModel,
+            // Additional properties for the webUI
+            deviceID: device.deviceID,
+            deviceType,
+            deviceClass: deviceType, // For legacy compatibility
+            deviceModel,
+            locationName: device.locationName,
+            locationId: device.locationId,
+            capabilities,
+            // Device status information
+            isOnline: device.isAlive !== false,
+            lastCheckin: device.lastCheckin,
+            // For thermostat devices
+            ...(deviceType === 'Thermostat' && {
+              currentTemperature: device.indoorTemperature,
+              currentHumidity: device.indoorHumidity,
+              targetTemperature: device.changeableValues?.heatSetpoint || device.changeableValues?.coolSetpoint,
+              currentMode: device.changeableValues?.mode,
+              allowedModes: device.allowedModes,
+            }),
+            // For leak sensors
+            ...(deviceType === 'LeakDetector' && {
+              waterDetected: device.waterPresent,
+              batteryLevel: device.batteryRemaining,
+              currentTemperature: device.currentSensorReadings?.temperature,
+              currentHumidity: device.currentSensorReadings?.humidity,
+            }),
+            // For valves
+            ...(deviceType === 'ShutoffValve' && {
+              valvePosition: device.actuatorValve?.valveStatus,
+              leakStatus: device.actuatorValve?.leakStatus,
+            }),
+          }
+        })
 
         return {
           status: 'ok',
@@ -402,6 +435,65 @@ export class PluginUiServer extends HomebridgePluginUiServer {
 
     this.ready()
   }
+}
+
+// Device type detection helper functions
+function getDeviceType(device: any): string {
+  if (device.deviceClass) {
+    return device.deviceClass
+  }
+
+  // Fallback detection based on device properties
+  if (device.changeableValues && (device.allowedModes || device.indoorTemperature !== undefined)) {
+    return 'Thermostat'
+  }
+  if (device.waterPresent !== undefined || device.batteryRemaining !== undefined) {
+    return 'LeakDetector'
+  }
+  if (device.actuatorValve) {
+    return 'ShutoffValve'
+  }
+
+  // Default fallback
+  return device.deviceType || 'Unknown'
+}
+
+function getDeviceModel(device: any): string {
+  return device.deviceModel || device.model || device.deviceType || 'Unknown'
+}
+
+function getDeviceCapabilities(device: any): string[] {
+  const capabilities: string[] = []
+
+  if (device.allowedModes?.includes('Heat')) {
+    capabilities.push('heating')
+  }
+  if (device.allowedModes?.includes('Cool')) {
+    capabilities.push('cooling')
+  }
+  if (device.allowedModes?.includes('Auto')) {
+    capabilities.push('auto')
+  }
+  if (device.settings?.fan) {
+    capabilities.push('fan')
+  }
+  if (device.indoorHumidity !== undefined) {
+    capabilities.push('humidity')
+  }
+  if (device.waterPresent !== undefined) {
+    capabilities.push('leak-detection')
+  }
+  if (device.batteryRemaining !== undefined) {
+    capabilities.push('battery')
+  }
+  if (device.actuatorValve) {
+    capabilities.push('valve-control')
+  }
+  if (device.groups && device.groups.length > 0) {
+    capabilities.push('room-sensors')
+  }
+
+  return capabilities
 }
 
 (() => new PluginUiServer())()

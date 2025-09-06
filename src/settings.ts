@@ -36,7 +36,7 @@ export const DeviceURL = 'https://api.honeywell.com/v2/devices'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD'
 
-// Config
+// Config - Simplified for first-version approach with webUi integration
 export interface ResideoPlatformConfig extends PlatformConfig {
   credentials?: credentials
   options?: options | Record<string, never>
@@ -59,7 +59,8 @@ export interface options {
   refreshRate?: number
   updateRate?: number
   pushRate?: number
-  devices?: devicesConfig[]
+  // devices array removed - now handled by webUi feature options
+  devices?: devicesConfig[] // Kept for legacy compatibility during migration
 }
 
 export interface devicesConfig extends resideoDevice {
