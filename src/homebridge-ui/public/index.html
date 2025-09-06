@@ -153,13 +153,13 @@
       },
       firstRun: {
          isRequired: () => {
-            // Always require setup for first version approach
+            // Check if we have complete credentials to skip first-run setup
             const currentConfig = homebridge.getPluginConfig();
             if (!Array.isArray(currentConfig) || !currentConfig[0]) {
                return true;
             }
             const config = currentConfig[0];
-            return !config?.credentials?.consumerKey || !config?.credentials?.consumerSecret || !config?.credentials?.accessToken;
+            return !config?.credentials?.consumerKey || !config?.credentials?.consumerSecret || !config?.credentials?.accessToken || !config?.credentials?.refreshToken;
          },
          onStart: () => {
             // Simple first run initialization - no legacy config handling
