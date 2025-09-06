@@ -12,7 +12,7 @@ export const featureOptionCategories = [
     description: 'Device configuration options for individual Resideo devices.',
   },
   {
-    name: 'Logging', 
+    name: 'Logging',
     description: 'Logging options for the Resideo plugin.',
   },
 ]
