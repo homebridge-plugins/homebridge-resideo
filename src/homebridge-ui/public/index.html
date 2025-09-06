@@ -153,26 +153,20 @@
       },
       firstRun: {
          isRequired: () => {
-            // Check if we need to run first-time setup
+            // Always require setup for first version approach
             const currentConfig = homebridge.getPluginConfig();
             if (!Array.isArray(currentConfig) || !currentConfig[0]) {
                return true;
             }
-            return !currentConfig[0]?.credentials?.consumerKey || !currentConfig[0]?.credentials?.consumerSecret;
+            const config = currentConfig[0];
+            return !config?.credentials?.consumerKey || !config?.credentials?.consumerSecret || !config?.credentials?.accessToken;
          },
          onStart: () => {
-            // Initialize first run form
-            const currentConfig = homebridge.getPluginConfig();
-            if (Array.isArray(currentConfig) && currentConfig[0]?.credentials) {
-               const keyInput = document.getElementById('firstRunKey');
-               const secretInput = document.getElementById('firstRunSecret');
-               if (keyInput) keyInput.value = currentConfig[0].credentials.consumerKey || '';
-               if (secretInput) secretInput.value = currentConfig[0].credentials.consumerSecret || '';
-            }
+            // Simple first run initialization - no legacy config handling
             return true;
          },
          onSubmit: async () => {
-            // Handle first run setup
+            // Handle first run setup with clean config creation
             const key = document.getElementById('firstRunKey')?.value;
             const secret = document.getElementById('firstRunSecret')?.value;
             const errorDiv = document.getElementById('loginError');
@@ -185,31 +179,15 @@
             }
 
             try {
-               // Get current config from webUi system
-               let currentConfig = homebridge.getPluginConfig();
-               
-               // Ensure we have a valid config array with platform info
-               if (!Array.isArray(currentConfig)) {
-                  currentConfig = [];
-               }
-               
-               if (!currentConfig[0]) {
-                  currentConfig.push({ 
-                     platform: 'Resideo',
-                     name: 'Resideo' 
-                  });
-               }
-               
-               // Ensure platform field is set
-               currentConfig[0].platform = 'Resideo';
-               
-               // Initialize credentials object if it doesn't exist
-               if (!currentConfig[0].credentials) {
-                  currentConfig[0].credentials = {};
-               }
-               
-               currentConfig[0].credentials.consumerKey = key;
-               currentConfig[0].credentials.consumerSecret = secret;
+               // Create clean config structure for first version
+               const currentConfig = [{
+                  platform: 'Resideo',
+                  name: 'Resideo',
+                  credentials: {
+                     consumerKey: key,
+                     consumerSecret: secret
+                  }
+               }];
 
                await homebridge.updatePluginConfig(currentConfig);
                
@@ -237,7 +215,7 @@
                   const checkClosed = setInterval(() => {
                      if (popup.closed) {
                         clearInterval(checkClosed);
-                        // Check if credentials were updated
+                        // Check if authentication completed successfully
                         const updatedConfig = homebridge.getPluginConfig();
                         if (Array.isArray(updatedConfig) && updatedConfig[0]?.credentials?.accessToken) {
                            resolve(true);
@@ -268,35 +246,17 @@
       homebridge.addEventListener('creds-received', async event => {
          try {
             if (event.data.access && event.data.refresh) {
-               // Get current config managed by webUi
-               let currentConfig = homebridge.getPluginConfig();
-               
-               // Ensure we have a valid config array
-               if (!Array.isArray(currentConfig)) {
-                  currentConfig = [];
-               }
-               
-               // Ensure we have a platform config object
-               if (!currentConfig[0]) {
-                  currentConfig.push({ 
-                     platform: 'Resideo',
-                     name: 'Resideo' 
-                  });
-               }
-               
-               // Ensure platform field is set
-               currentConfig[0].platform = 'Resideo';
-               
-               // Initialize credentials object if it doesn't exist
-               if (!currentConfig[0].credentials) {
-                  currentConfig[0].credentials = {};
-               }
-               
-               // Update credentials
-               currentConfig[0].credentials.consumerKey = event.data.key;
-               currentConfig[0].credentials.consumerSecret = event.data.secret;
-               currentConfig[0].credentials.accessToken = event.data.access;
-               currentConfig[0].credentials.refreshToken = event.data.refresh;
+               // Create clean config structure for first version
+               const currentConfig = [{
+                  platform: 'Resideo',
+                  name: 'Resideo',
+                  credentials: {
+                     consumerKey: event.data.key,
+                     consumerSecret: event.data.secret,
+                     accessToken: event.data.access,
+                     refreshToken: event.data.refresh
+                  }
+               }];
                
                await homebridge.updatePluginConfig(currentConfig);
                await homebridge.savePluginConfig();
@@ -304,7 +264,7 @@
             }
          } catch (err) {
             console.log(err);
-            homebridge.toast.error('Try again, or see the console message for info.', 'Error');
+            homebridge.toast.error('Setup failed. Please try again.', 'Error');
          }
       });
 
@@ -321,8 +281,8 @@
    };
 
    const setupLegacyMenus = () => {
-      // Legacy menu functionality has been removed in favor of homebridge-plugin-utils webUi
-      // The webUi handles navigation automatically
+      // Legacy menu functionality removed for first version approach
+      // The webUi handles all navigation automatically
    };
 
    // Show the webUI

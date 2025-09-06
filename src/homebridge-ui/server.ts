@@ -26,66 +26,14 @@ interface CustomRequestResponse {
 interface Credentials {
   accessToken?: string
   refreshToken?: string
-  consumerKey?: string
-  consumerSecret?: string
+  consumerKey: string
+  consumerSecret: string
 }
 
 interface Config {
   platform: string
   name: string
-  credentials?: Credentials
-}
-
-interface Credentials {
-  accessToken?: string
-  refreshToken?: string
-  consumerKey?: string
-  consumerSecret?: string
-}
-
-interface Config {
-  platform: string
-  name: string
-  credentials?: Credentials
-}
-
-interface Credentials {
-  accessToken?: string
-  refreshToken?: string
-  consumerKey?: string
-  consumerSecret?: string
-}
-
-interface Config {
-  platform: string
-  name: string
-  credentials?: Credentials
-}
-
-interface Credentials {
-  accessToken?: string
-  refreshToken?: string
-  consumerKey?: string
-  consumerSecret?: string
-}
-
-interface Config {
-  platform: string
-  name: string
-  credentials?: Credentials
-}
-
-interface Credentials {
-  accessToken?: string
-  refreshToken?: string
-  consumerKey?: string
-  consumerSecret?: string
-}
-
-interface Config {
-  platform: string
-  name: string
-  credentials?: Credentials
+  credentials: Credentials
 }
 
 export class PluginUiServer extends HomebridgePluginUiServer {
@@ -224,17 +172,17 @@ export class PluginUiServer extends HomebridgePluginUiServer {
 
         // Find the Resideo platform config
         const platformConfig = config.platforms?.find((platform: Config) =>
-          platform.platform === 'Resideo' || platform.name === 'Resideo',
+          platform.platform === 'Resideo',
         )
 
         if (!platformConfig?.credentials) {
-          throw new Error('Resideo credentials not found in config. Please re-link your account.')
+          throw new Error('Resideo credentials not found in config. Please complete initial setup.')
         }
 
         const credentials = platformConfig.credentials
 
         if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
-          throw new Error('Invalid credentials configuration. Please re-link your account.')
+          throw new Error('Invalid credentials configuration. Please complete initial setup.')
         }
 
         // Get a fresh access token
@@ -268,7 +216,7 @@ export class PluginUiServer extends HomebridgePluginUiServer {
           }
         } catch (tokenError: any) {
           console.error('Failed to refresh access token:', tokenError.message)
-          throw new Error('Authentication failed. Please re-link your account in the plugin configuration.')
+          throw new Error('Authentication failed. Please complete initial setup in the plugin configuration.')
         }
 
         // Get locations and devices from Resideo API
@@ -347,17 +295,17 @@ export class PluginUiServer extends HomebridgePluginUiServer {
 
         // Find the Resideo platform config
         const platformConfig = config.platforms?.find((platform: Config) =>
-          platform.platform === 'Resideo' || platform.name === 'Resideo',
+          platform.platform === 'Resideo',
         )
 
         if (!platformConfig?.credentials) {
-          throw new Error('Resideo credentials not found in config. Please re-link your account.')
+          throw new Error('Resideo credentials not found in config. Please complete initial setup.')
         }
 
         const credentials = platformConfig.credentials
 
         if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
-          throw new Error('Invalid credentials configuration. Please re-link your account.')
+          throw new Error('Invalid credentials configuration. Please complete initial setup.')
         }
 
         // Get a fresh access token
@@ -391,7 +339,7 @@ export class PluginUiServer extends HomebridgePluginUiServer {
           }
         } catch (tokenError: any) {
           console.error('Failed to refresh access token:', tokenError.message)
-          throw new Error('Authentication failed. Please re-link your account in the plugin configuration.')
+          throw new Error('Authentication failed. Please complete initial setup in the plugin configuration.')
         }
 
         // Get locations and devices from Resideo API
