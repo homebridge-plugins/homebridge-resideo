@@ -157,3 +157,6 @@ dist
 
 persist/
 .DS_Store
+
+# Plugin UI modular components should be included
+!src/homebridge-ui/public/lib/*.mjs

@@ -58,6 +58,15 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   debugMode!: boolean
   version!: string
   action!: string
+  private apiHealthStatus: {
+    lastSuccessfulCall: number
+    consecutiveFailures: number
+    isHealthy: boolean
+  } = {
+    lastSuccessfulCall: Date.now(),
+    consecutiveFailures: 0,
+    isHealthy: true,
+  }
 
   public axios: AxiosInstance = axios.create({
     responseType: 'json',
@@ -102,14 +111,58 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       request.params = request.params || {}
       request.params.apikey = this.config.credentials?.consumerKey
       request.headers!['Content-Type'] = 'application/json'
+      request.headers!['Accept'] = 'application/json'
+      request.headers!['User-Agent'] = `homebridge-resideo/${this.version || '1.0.0'}`
+      
+      // Add request timeout (configurable via options, defaults to 30 seconds)
+      const defaultTimeout = this.config.options?.apiTimeout || 30000
+      request.timeout = request.timeout || defaultTimeout
+      
+      this.debugLog(`API Request: ${request.method?.toUpperCase()} ${request.url}`)
       return request
     })
+
+    // Add response interceptor for better error handling and logging
+    this.axios.interceptors.response.use(
+      (response) => {
+        this.debugLog(`API Response: ${response.status} ${response.statusText} for ${response.config.method?.toUpperCase()} ${response.config.url}`)
+        
+        // Update API health status on successful responses
+        this.updateApiHealthStatus(true)
+        
+        return response
+      },
+      (error) => {
+        // Enhanced error logging
+        if (error.response) {
+          this.debugLog(`API Error Response: ${error.response.status} ${error.response.statusText} for ${error.config?.method?.toUpperCase()} ${error.config?.url}`)
+        } else if (error.request) {
+          this.debugLog(`API Network Error: No response received for ${error.config?.method?.toUpperCase()} ${error.config?.url}`)
+        } else {
+          this.debugLog(`API Request Setup Error: ${error.message}`)
+        }
+        
+        // Update API health status on failures
+        this.updateApiHealthStatus(false)
+        
+        return Promise.reject(error)
+      },
+    )
 
     this.api.on('didFinishLaunching', async () => {
       this.debugLog('Executed didFinishLaunching callback')
       await this.refreshAccessToken()
       if (this.config.credentials?.accessToken) {
         this.debugLog(`accessToken: ${this.config.credentials?.accessToken}`)
+        
+        // Validate API connection before discovering devices
+        if (this.config.options?.enableApiHealthCheck !== false) {
+          const apiHealthy = await this.validateApiConnection()
+          if (!apiHealthy) {
+            this.errorLog('API connection validation failed. Some features may not work properly.')
+          }
+        }
+        
         try {
           this.discoverDevices()
         } catch (e: any) {
@@ -247,26 +300,232 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   }
 
   async discoverlocations(): Promise<location[]> {
-    const locations = (await this.axios.get(LocationURL)).data
+    const locations = (await this.retryApiCall(() => this.axios.get(LocationURL))).data
     return locations
   }
 
-  public async getCurrentSensorData(location: location, device: resideoDevice & devicesConfig, group: T9groups) {
-    if (!this.sensorData[device.deviceID] || this.sensorData[device.deviceID].timestamp < Date.now()) {
-      const response: any = await this.axios.get(`${DeviceURL}/thermostats/${device.deviceID}/group/${group.id}/rooms`, {
-        params: {
-          locationId: location.locationID,
-        },
-      })
-      this.sensorData[device.deviceID] = {
-        timestamp: Date.now() + 45000,
-        data: this.normalizeSensorDate(response.data),
+  /**
+   * Enhanced API call wrapper with retry logic for rate limiting and temporary errors
+   */
+  private async retryApiCall<T>(
+    apiCall: () => Promise<T>,
+    maxRetries?: number,
+    baseDelay?: number,
+  ): Promise<T> {
+    const retries = maxRetries ?? this.config.options?.apiRetryAttempts ?? 3
+    const delay = baseDelay ?? this.config.options?.apiRetryDelay ?? 1000
+    let lastError: any
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await apiCall()
+      } catch (error: any) {
+        lastError = error
+        const status = error.response?.status
+        
+        // Don't retry for certain error types
+        if (status === 400 || status === 401 || status === 403 || status === 404) {
+          throw error
+        }
+        
+        // Retry for rate limits, server errors, and network issues
+        if (attempt < retries && (status === 429 || status >= 500 || !status)) {
+          const retryAfter = error.response?.headers['retry-after']
+          let waitTime = delay * Math.pow(2, attempt - 1) // Exponential backoff
+          
+          if (retryAfter) {
+            waitTime = Math.max(waitTime, parseInt(retryAfter) * 1000)
+          }
+          
+          this.warnLog(`API call failed (attempt ${attempt}/${retries}), retrying in ${waitTime}ms. Status: ${status || 'Network Error'}`)
+          await new Promise(resolve => setTimeout(resolve, waitTime))
+          continue
+        }
+        
+        throw error
       }
-      this.debugLog(`getCurrentSensorData ${device.deviceType} ${device.deviceModel}: ${this.sensorData[device.deviceID]}`)
-    } else {
-      this.debugLog(`getCurrentSensorData Cache ${device.deviceType} ${device.deviceModel} - ${device.userDefinedDeviceName}`)
     }
-    return this.sensorData[device.deviceID].data
+    
+    throw lastError
+  }
+
+  /**
+   * Public wrapper for device classes to make resilient API calls
+   */
+  public async makeApiCall<T>(apiCall: () => Promise<T>): Promise<T> {
+    return this.retryApiCall(apiCall)
+  }
+
+  /**
+   * Update API health status tracking
+   */
+  private updateApiHealthStatus(success: boolean) {
+    if (success) {
+      this.apiHealthStatus.lastSuccessfulCall = Date.now()
+      this.apiHealthStatus.consecutiveFailures = 0
+      
+      // Mark as healthy if we had failures but now succeeded
+      if (!this.apiHealthStatus.isHealthy) {
+        this.apiHealthStatus.isHealthy = true
+        this.infoLog('Resideo API connection restored')
+      }
+    } else {
+      this.apiHealthStatus.consecutiveFailures++
+      
+      // Mark as unhealthy after 3 consecutive failures
+      if (this.apiHealthStatus.consecutiveFailures >= 3 && this.apiHealthStatus.isHealthy) {
+        this.apiHealthStatus.isHealthy = false
+        this.errorLog(`Resideo API appears unhealthy (${this.apiHealthStatus.consecutiveFailures} consecutive failures)`)
+      }
+    }
+  }
+
+  /**
+   * Check if API is healthy and accessible
+   */
+  public isApiHealthy(): boolean {
+    const timeSinceLastSuccess = Date.now() - this.apiHealthStatus.lastSuccessfulCall
+    const maxTimeSinceSuccess = 10 * 60 * 1000 // 10 minutes
+    
+    return this.apiHealthStatus.isHealthy && timeSinceLastSuccess < maxTimeSinceSuccess
+  }
+
+  /**
+   * Validate API credentials and connectivity
+   */
+  async validateApiConnection(): Promise<boolean> {
+    try {
+      this.action = 'validate API connection'
+      const response = await this.retryApiCall(() => this.axios.get(LocationURL), 2, 2000)
+      
+      if (response.data && Array.isArray(response.data)) {
+        this.infoLog(`API connection validated successfully. Found ${response.data.length} location(s).`)
+        return true
+      } else {
+        this.warnLog('API connection returned unexpected data format.')
+        return false
+      }
+    } catch (error: any) {
+      this.errorLog('API connection validation failed.')
+      this.apiError(error)
+      return false
+    }
+  }
+
+  /**
+   * Get thermostat schedule information
+   */
+  async getThermostatSchedule(deviceId: string | number, locationId: string | number): Promise<any> {
+    try {
+      this.action = 'get thermostat schedule'
+      const response = await this.retryApiCall(() =>
+        this.axios.get(`${DeviceURL}/thermostats/${deviceId}/schedule`, {
+          params: { locationId },
+        })
+      )
+      
+      this.debugLog(`Retrieved schedule for thermostat ${deviceId}`)
+      return response.data
+    } catch (error: any) {
+      this.apiError(error)
+      throw error
+    }
+  }
+
+  /**
+   * Set thermostat schedule
+   */
+  async setThermostatSchedule(deviceId: string | number, locationId: string | number, scheduleData: any): Promise<void> {
+    try {
+      this.action = 'set thermostat schedule'
+      await this.retryApiCall(() =>
+        this.axios.put(`${DeviceURL}/thermostats/${deviceId}/schedule`, scheduleData, {
+          params: { locationId },
+        })
+      )
+      
+      this.infoLog(`Updated schedule for thermostat ${deviceId}`)
+    } catch (error: any) {
+      this.apiError(error)
+      throw error
+    }
+  }
+
+  /**
+   * Get device capabilities and features
+   */
+  async getDeviceCapabilities(deviceId: string | number, locationId: string | number, deviceType: string): Promise<any> {
+    try {
+      this.action = 'get device capabilities'
+      let endpoint: string
+      
+      switch (deviceType.toLowerCase()) {
+        case 'thermostat':
+          endpoint = `${DeviceURL}/thermostats/${deviceId}/capabilities`
+          break
+        case 'waterleakdetector':
+          endpoint = `${DeviceURL}/waterLeakDetectors/${deviceId}/capabilities`
+          break
+        case 'shutoffvalve':
+          endpoint = `${DeviceURL}/shutoffvalve/${deviceId}/capabilities`
+          break
+        default:
+          throw new Error(`Unsupported device type for capabilities: ${deviceType}`)
+      }
+      
+      const response = await this.retryApiCall(() =>
+        this.axios.get(endpoint, {
+          params: { locationId },
+        })
+      )
+      
+      this.debugLog(`Retrieved capabilities for ${deviceType} ${deviceId}`)
+      return response.data
+    } catch (error: any) {
+      // Capabilities endpoint might not exist for all devices, so don't log as error
+      this.debugLog(`Could not retrieve capabilities for ${deviceType} ${deviceId}: ${error.message}`)
+      return null
+    }
+  }
+
+  public async getCurrentSensorData(location: location, device: resideoDevice & devicesConfig, group: T9groups) {
+    const cacheKey = device.deviceID
+    const now = Date.now()
+    const cacheExpiry = 45000 // 45 seconds cache
+    
+    if (!this.sensorData[cacheKey] || this.sensorData[cacheKey].timestamp < now) {
+      try {
+        const response: any = await this.retryApiCall(() => 
+          this.axios.get(`${DeviceURL}/thermostats/${device.deviceID}/group/${group.id}/rooms`, {
+            params: {
+              locationId: location.locationID,
+            },
+          })
+        )
+        
+        this.sensorData[cacheKey] = {
+          timestamp: now + cacheExpiry,
+          data: this.normalizeSensorDate(response.data),
+        }
+        
+        this.debugLog(`getCurrentSensorData refreshed for ${device.deviceType} ${device.deviceModel}: ${device.userDefinedDeviceName}`)
+      } catch (error: any) {
+        this.action = 'get sensor data'
+        this.apiError(error)
+        
+        // Return cached data if available, even if expired
+        if (this.sensorData[cacheKey]) {
+          this.warnLog(`Using expired sensor cache for ${device.userDefinedDeviceName} due to API error`)
+          return this.sensorData[cacheKey].data
+        }
+        
+        throw error
+      }
+    } else {
+      this.debugLog(`getCurrentSensorData using cache for ${device.deviceType} ${device.deviceModel} - ${device.userDefinedDeviceName}`)
+    }
+    
+    return this.sensorData[cacheKey].data
   }
 
   private normalizeSensorDate(sensorRoomData: { rooms: any }) {
@@ -751,37 +1010,67 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   }
 
   apiError(e: any) {
-    if (e.message.includes('400')) {
-      this.errorLog(`Failed to ${this.action}: Bad Request`)
+    const status = e.response?.status || e.status
+    const statusText = e.response?.statusText || e.statusText
+    const responseData = e.response?.data
+
+    if (status === 400) {
+      this.errorLog(`Failed to ${this.action}: Bad Request (400)`)
       this.debugLog('The client has issued an invalid request. This is commonly used to specify validation errors in a request payload.')
-    } else if (e.message.includes('401')) {
-      this.errorLog(`Failed to ${this.action}: Unauthorized Request`)
+      if (responseData?.error) {
+        this.debugLog(`API Error Details: ${JSON.stringify(responseData.error)}`)
+      }
+    } else if (status === 401) {
+      this.errorLog(`Failed to ${this.action}: Unauthorized Request (401)`)
       this.debugLog('Authorization for the API is required, but the request has not been authenticated.')
-    } else if (e.message.includes('403')) {
-      this.errorLog(`Failed to ${this.action}: Forbidden Request`)
+      // Trigger token refresh on 401 errors
+      this.warnLog('Access token may be expired. Will attempt refresh on next cycle.')
+    } else if (status === 403) {
+      this.errorLog(`Failed to ${this.action}: Forbidden Request (403)`)
       this.debugLog('The request has been authenticated but does not have appropriate permissions, or a requested resource is not found.')
-    } else if (e.message.includes('404')) {
-      this.errorLog(`Failed to ${this.action}: Request Not Found`)
-      this.debugLog('Specifies the requested path does not exist.')
-    } else if (e.message.includes('406')) {
-      this.errorLog(`Failed to ${this.action}: Request Not Acceptable`)
+    } else if (status === 404) {
+      this.errorLog(`Failed to ${this.action}: Request Not Found (404)`)
+      this.debugLog('Specifies the requested path does not exist. Device may have been removed or ID is incorrect.')
+    } else if (status === 406) {
+      this.errorLog(`Failed to ${this.action}: Request Not Acceptable (406)`)
       this.debugLog('The client has requested a MIME type via the Accept header for a value not supported by the server.')
-    } else if (e.message.includes('415')) {
-      this.errorLog(`Failed to ${this.action}: Unsupported Request Header`)
+    } else if (status === 415) {
+      this.errorLog(`Failed to ${this.action}: Unsupported Request Header (415)`)
       this.debugLog('The client has defined a contentType header that is not supported by the server.')
-    } else if (e.message.includes('422')) {
-      this.errorLog(`Failed to ${this.action}: Unprocessable Entity`)
+    } else if (status === 422) {
+      this.errorLog(`Failed to ${this.action}: Unprocessable Entity (422)`)
       this.debugLog('The client has made a valid request, but the server cannot process it. This is often used for APIs for which certain limits have been exceeded.')
-    } else if (e.message.includes('429')) {
-      this.errorLog(`Failed to ${this.action}: Too Many Requests`)
+      if (responseData?.message) {
+        this.debugLog(`Validation Error: ${responseData.message}`)
+      }
+    } else if (status === 429) {
+      this.errorLog(`Failed to ${this.action}: Too Many Requests (429)`)
       this.debugLog('The client has exceeded the number of requests allowed for a given time window.')
-    } else if (e.message.includes('500')) {
-      this.errorLog(`Failed to ${this.action}: Internal Server Error`)
+      const retryAfter = e.response?.headers['retry-after']
+      if (retryAfter) {
+        this.warnLog(`Rate limit exceeded. Retry after: ${retryAfter} seconds`)
+      }
+    } else if (status === 500) {
+      this.errorLog(`Failed to ${this.action}: Internal Server Error (500)`)
       this.debugLog('An unexpected error on the Resideo servers has occurred. These errors should be rare.')
+    } else if (status === 502) {
+      this.errorLog(`Failed to ${this.action}: Bad Gateway (502)`)
+      this.debugLog('Resideo API gateway error. This is typically temporary.')
+    } else if (status === 503) {
+      this.errorLog(`Failed to ${this.action}: Service Unavailable (503)`)
+      this.debugLog('Resideo API is temporarily unavailable. This is typically due to maintenance.')
+    } else if (status === 504) {
+      this.errorLog(`Failed to ${this.action}: Gateway Timeout (504)`)
+      this.debugLog('Resideo API gateway timeout. The request took too long to process.')
     } else {
-      this.errorLog(`Failed to ${this.action}`)
+      this.errorLog(`Failed to ${this.action}: ${statusText || 'Unknown Error'} (${status || 'No Status'})`)
     }
-    this.debugErrorLog(`Failed to ${this.action}, Error Message: ${JSON.stringify(e.message)}`)
+    
+    // Enhanced error details for debugging
+    this.debugErrorLog(`API Error Details - Action: ${this.action}, Status: ${status}, Message: ${e.message}`)
+    if (e.config?.url) {
+      this.debugErrorLog(`Failed Request URL: ${e.config.method?.toUpperCase()} ${e.config.url}`)
+    }
   }
 
   async statusCode(statusCode: number, action: string): Promise<void> {
@@ -853,6 +1142,21 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       platformConfig.pushRate = this.config.options.pushRate ? this.config.options.pushRate : undefined
       platformConfig.maxRetries = this.config.options.maxRetries ? this.config.options.maxRetries : undefined
       platformConfig.delayBetweenRetries = this.config.options.delayBetweenRetries ? this.config.options.delayBetweenRetries : undefined
+      
+      // API optimization settings
+      if (this.config.options.apiRetryAttempts !== undefined) {
+        this.debugLog(`API retry attempts configured: ${this.config.options.apiRetryAttempts}`)
+      }
+      if (this.config.options.apiRetryDelay !== undefined) {
+        this.debugLog(`API retry delay configured: ${this.config.options.apiRetryDelay}ms`)
+      }
+      if (this.config.options.apiTimeout !== undefined) {
+        this.debugLog(`API timeout configured: ${this.config.options.apiTimeout}ms`)
+      }
+      if (this.config.options.enableApiHealthCheck !== undefined) {
+        this.debugLog(`API health check enabled: ${this.config.options.enableApiHealthCheck}`)
+      }
+      
       if (Object.entries(platformConfig).length !== 0) {
         await this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
       }

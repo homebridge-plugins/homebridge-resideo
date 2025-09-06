@@ -131,6 +131,13 @@
 </div>
 <script type="module">
    import { webUi } from "./lib/webUi.mjs";
+   import { OAuthModule } from "./lib/oauth-module.mjs";
+   import { ConfigModule } from "./lib/config-module.mjs";
+   import { UIUtils } from "./lib/ui-utils.mjs";
+
+   // Initialize modules
+   const oauthModule = new OAuthModule();
+   const configModule = new ConfigModule();
 
    // Initialize the webUI with homebridge-plugin-utils
    const ui = new webUi({
@@ -152,130 +159,62 @@
          }
       },
       firstRun: {
-         isRequired: () => {
-            // Check if we have complete credentials to skip first-run setup
-            const currentConfig = homebridge.getPluginConfig();
-            if (!Array.isArray(currentConfig) || !currentConfig[0]) {
-               return true;
-            }
-            
-            const config = currentConfig[0];
-            const credentials = config?.credentials;
-            
-            // All four credential fields are required to skip first-run setup
-            const requiredCredentials = ['consumerKey', 'consumerSecret', 'accessToken', 'refreshToken'];
-            const hasAllCredentials = requiredCredentials.every(field => 
-               credentials?.[field] && credentials[field].trim() !== ''
-            );
-            
-            // Return true if first-run is required (missing credentials), false if can skip
-            return !hasAllCredentials;
-         },
+         isRequired: () => configModule.isFirstRunRequired(),
          onStart: () => {
-            // Simple first run initialization - no legacy config handling
+            // Clean first run initialization
             return true;
          },
          onSubmit: async () => {
-            // Handle first run setup with clean config creation
-            const key = document.getElementById('firstRunKey')?.value?.trim();
-            const secret = document.getElementById('firstRunSecret')?.value?.trim();
-            const errorDiv = document.getElementById('loginError');
+            // Handle first run setup with modular approach
+            const key = UIUtils.getFieldValue('firstRunKey');
+            const secret = UIUtils.getFieldValue('firstRunSecret');
+            
+            UIUtils.clearMessage('loginError');
+            UIUtils.storeButtonText('firstRun');
+            UIUtils.setButtonLoading('firstRun', true);
 
-            // Clear any previous errors
-            if (errorDiv) {
-               errorDiv.innerHTML = '&nbsp;';
-            }
-
-            // Validate input fields
-            if (!key || !secret) {
-               if (errorDiv) {
-                  errorDiv.innerHTML = '<div class="alert alert-danger"><strong>Error:</strong> Please enter both Consumer Key and Consumer Secret.</div>';
-               }
-               return false;
-            }
-
-            // Basic validation for credential format
-            if (key.length < 10 || secret.length < 10) {
-               if (errorDiv) {
-                  errorDiv.innerHTML = '<div class="alert alert-danger"><strong>Error:</strong> Consumer Key and Secret appear to be too short. Please verify your credentials.</div>';
-               }
+            // Validate credentials
+            const validation = oauthModule.validateCredentials(key, secret);
+            if (!validation.valid) {
+               UIUtils.showError('loginError', validation.message);
+               UIUtils.setButtonLoading('firstRun', false);
                return false;
             }
 
             try {
-               // Create clean config structure for first version
-               const currentConfig = [{
-                  platform: 'Resideo',
-                  name: 'Resideo',
-                  credentials: {
-                     consumerKey: key,
-                     consumerSecret: secret
-                  }
-               }];
-
-               await homebridge.updatePluginConfig(currentConfig);
+               // Create initial config
+               const initialConfig = configModule.createInitialConfig(key, secret);
+               const updateResult = await configModule.updateConfig(initialConfig);
                
-               // Now trigger the OAuth flow
-               await homebridge.request('Start Resideo Login Server');
-               
-               // Open OAuth popup
-               const hostname = window.location.hostname;
-               const w = 450;
-               const h = 700;
-               const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
-               const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
-               const urlToOpen = 'http://' + hostname + ':8585/start?' +
-                  'key=' + encodeURIComponent(key) +
-                  '&secret=' + encodeURIComponent(secret) +
-                  '&host=' + encodeURIComponent(hostname);
-               
-               const popup = window.open(
-                  urlToOpen, 'resideo-auth',
-                  'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
-                  'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
-               );
-
-               return new Promise((resolve) => {
-                  const checkClosed = setInterval(() => {
-                     if (popup.closed) {
-                        clearInterval(checkClosed);
-                        
-                        // Wait a moment for config to update
-                        setTimeout(() => {
-                           // Check if authentication completed successfully by verifying all required credentials
-                           const updatedConfig = homebridge.getPluginConfig();
-                           const credentials = Array.isArray(updatedConfig) && updatedConfig[0]?.credentials;
-                           const hasCompleteAuth = credentials?.accessToken && 
-                                                 credentials?.refreshToken && 
-                                                 credentials?.consumerKey && 
-                                                 credentials?.consumerSecret;
-                           
-                           if (hasCompleteAuth) {
-                              if (errorDiv) {
-                                 errorDiv.innerHTML = '<div class="alert alert-success"><strong>Success!</strong> Your account has been linked successfully.</div>';
-                              }
-                              resolve(true);
-                           } else {
-                              if (errorDiv) {
-                                 errorDiv.innerHTML = '<div class="alert alert-warning"><strong>Authentication incomplete.</strong> Please try the setup process again or check your Resideo developer credentials.</div>';
-                              }
-                              resolve(false);
-                           }
-                        }, 500);
-                     }
-                  }, 1000);
-               });
-            } catch (error) {
-               console.error('Resideo setup error:', error);
-               if (errorDiv) {
-                  if (error.message.includes('port')) {
-                     errorDiv.innerHTML = '<div class="alert alert-danger"><strong>Error:</strong> OAuth server port conflict. Please wait a moment and try again.</div>';
-                  } else if (error.message.includes('network') || error.message.includes('fetch')) {
-                     errorDiv.innerHTML = '<div class="alert alert-danger"><strong>Error:</strong> Network error. Please check your connection and try again.</div>';
-                  } else {
-                     errorDiv.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> Setup failed. ${error.message || 'Please try again.'}</div>`;
-                  }
+               if (!updateResult.success) {
+                  throw new Error(updateResult.error || 'Failed to update configuration');
                }
+
+               // Start OAuth flow
+               const popup = await oauthModule.startOAuthFlow(key, secret);
+               
+               // Verify OAuth completion
+               const result = await oauthModule.verifyOAuthCompletion(popup);
+               
+               if (result.success) {
+                  UIUtils.showSuccess('loginError', 'Your account has been linked successfully.');
+                  UIUtils.setButtonLoading('firstRun', false);
+                  
+                  // Force UI refresh after short delay
+                  setTimeout(() => {
+                     return true;
+                  }, 100);
+                  
+                  return true;
+               } else {
+                  UIUtils.showWarning('loginError', result.message || 'Authentication incomplete. Please try again.');
+                  UIUtils.setButtonLoading('firstRun', false);
+                  return false;
+               }
+            } catch (error) {
+               console.error('First run setup error:', error);
+               UIUtils.handleError(error, 'loginError');
+               UIUtils.setButtonLoading('firstRun', false);
                return false;
             }
          }
@@ -283,60 +222,29 @@
       name: 'homebridge-resideo'
    });
 
-   // Legacy functionality for existing UI elements - simplified for webUi compatibility
-   const setupLegacyHandlers = () => {
-      const hostname = window.location.hostname;
+   // Setup OAuth credential handler and other legacy functionality
+   const setupLegacyIntegration = () => {
+      // Setup OAuth credential reception
+      oauthModule.setupCredentialHandler();
+
+      // Setup copy to clipboard functionality
+      UIUtils.setupCopyToClipboard();
       
-      homebridge.addEventListener('creds-received', async event => {
-         try {
-            if (event.data.access && event.data.refresh) {
-               // Create clean config structure for first version
-               const currentConfig = [{
-                  platform: 'Resideo',
-                  name: 'Resideo',
-                  credentials: {
-                     consumerKey: event.data.key,
-                     consumerSecret: event.data.secret,
-                     accessToken: event.data.access,
-                     refreshToken: event.data.refresh
-                  }
-               }];
-               
-               await homebridge.updatePluginConfig(currentConfig);
-               await homebridge.savePluginConfig();
-               homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
-            }
-         } catch (err) {
-            console.log(err);
-            homebridge.toast.error('Setup failed. Please try again.', 'Error');
-         }
-      });
-
-      window.copyMyText = () => {
-         const textToCopy = document.getElementById("copyMe");
-         if (textToCopy) {
-            textToCopy.select();
-            document.execCommand("copy");
-         }
-      };
-
-      // Initialize legacy components for backwards compatibility
-      setupLegacyMenus();
+      // Initialize callback URL display
+      const hostname = window.location.hostname;
+      const callbackUrl = `http://${hostname}:8585/auth`;
+      UIUtils.setFieldValue('copyMe', callbackUrl);
    };
 
-   const setupLegacyMenus = () => {
-      // Legacy menu functionality removed for first version approach
-      // The webUi handles all navigation automatically
-   };
-
-   // Show the webUI
+   // Initialize the application
    (async () => {
       try {
          await homebridge.request('Start Resideo Login Server');
-         setupLegacyHandlers();
+         setupLegacyIntegration();
          ui.show();
       } catch (err) {
-         homebridge.toast.error(err.message, 'Error');
+         console.error('Initialization error:', err);
+         homebridge.toast.error(err.message || 'Failed to initialize plugin UI', 'Error');
       }
    })();
 </script>

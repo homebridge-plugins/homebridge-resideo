@@ -175,96 +175,13 @@ export class PluginUiServer extends HomebridgePluginUiServer {
       }
     })
 
+    // Add helper methods for common API operations
+    this.setupApiHelpers()
+
     this.onRequest('/getAvailableDevices', async (): Promise<CustomRequestResponse> => {
       try {
-        // Read the current config to get credentials
-        const configPath = this.homebridgeConfigPath || ''
-        if (!configPath || !fs.existsSync(configPath)) {
-          throw new Error('Homebridge config.json not found')
-        }
-
-        const configData = await fs.promises.readFile(configPath, 'utf8')
-        const config = JSON.parse(configData)
-
-        // Find the Resideo platform config
-        const platformConfig = config.platforms?.find((platform: Config) =>
-          platform.platform === 'Resideo',
-        )
-
-        if (!platformConfig?.credentials) {
-          throw new Error('Resideo credentials not found in config. Please complete initial setup.')
-        }
-
-        const credentials = platformConfig.credentials
-
-        if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
-          throw new Error('Invalid credentials configuration. Please complete initial setup.')
-        }
-
-        // Get a fresh access token
-        let accessToken = credentials.accessToken
-
-        try {
-          const tokenResponse = await axios({
-            url: TokenURL,
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            auth: {
-              username: credentials.consumerKey,
-              password: credentials.consumerSecret,
-            },
-            data: stringify({
-              grant_type: 'refresh_token',
-              refresh_token: credentials.refreshToken,
-            }),
-            responseType: 'json',
-          })
-
-          accessToken = tokenResponse.data.access_token
-
-          // Update the config with the new tokens if they changed
-          if (tokenResponse.data.refresh_token !== credentials.refreshToken) {
-            credentials.refreshToken = tokenResponse.data.refresh_token
-            credentials.accessToken = accessToken
-            await fs.promises.writeFile(configPath, JSON.stringify(config, null, 4))
-          }
-        } catch (tokenError: any) {
-          console.error('Failed to refresh access token:', tokenError.message)
-          throw new Error('Authentication failed. Please complete initial setup in the plugin configuration.')
-        }
-
-        // Get locations and devices from Resideo API
-        const locationsResponse = await axios({
-          url: LocationURL,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          params: {
-            apikey: credentials.consumerKey,
-          },
-        })
-
-        const locations = locationsResponse.data
-        const devices: any[] = []
-
-        // Extract devices from all locations
-        if (Array.isArray(locations)) {
-          locations.forEach((location: any) => {
-            if (location.devices && Array.isArray(location.devices)) {
-              location.devices.forEach((device: any) => {
-                devices.push({
-                  ...device,
-                  locationName: location.name,
-                  locationId: location.locationID,
-                })
-              })
-            }
-          })
-        }
+        const { credentials, accessToken } = await this.getValidCredentials()
+        const { locations, devices } = await this.getLocationsAndDevices(credentials, accessToken)
 
         return {
           status: 'ok',
@@ -300,94 +217,8 @@ export class PluginUiServer extends HomebridgePluginUiServer {
 
     this.onRequest('/getDevices', async (): Promise<CustomRequestResponse> => {
       try {
-        // Read the current config to get credentials and call getAvailableDevices
-        const configPath = this.homebridgeConfigPath || ''
-        if (!configPath || !fs.existsSync(configPath)) {
-          throw new Error('Homebridge config.json not found')
-        }
-
-        const configData = await fs.promises.readFile(configPath, 'utf8')
-        const config = JSON.parse(configData)
-
-        // Find the Resideo platform config
-        const platformConfig = config.platforms?.find((platform: Config) =>
-          platform.platform === 'Resideo',
-        )
-
-        if (!platformConfig?.credentials) {
-          throw new Error('Resideo credentials not found in config. Please complete initial setup.')
-        }
-
-        const credentials = platformConfig.credentials
-
-        if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
-          throw new Error('Invalid credentials configuration. Please complete initial setup.')
-        }
-
-        // Get a fresh access token
-        let accessToken = credentials.accessToken
-
-        try {
-          const tokenResponse = await axios({
-            url: TokenURL,
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            auth: {
-              username: credentials.consumerKey,
-              password: credentials.consumerSecret,
-            },
-            data: stringify({
-              grant_type: 'refresh_token',
-              refresh_token: credentials.refreshToken,
-            }),
-            responseType: 'json',
-          })
-
-          accessToken = tokenResponse.data.access_token
-
-          // Update the config with the new tokens if they changed
-          if (tokenResponse.data.refresh_token !== credentials.refreshToken) {
-            credentials.refreshToken = tokenResponse.data.refresh_token
-            credentials.accessToken = accessToken
-            await fs.promises.writeFile(configPath, JSON.stringify(config, null, 4))
-          }
-        } catch (tokenError: any) {
-          console.error('Failed to refresh access token:', tokenError.message)
-          throw new Error('Authentication failed. Please complete initial setup in the plugin configuration.')
-        }
-
-        // Get locations and devices from Resideo API
-        const locationsResponse = await axios({
-          url: LocationURL,
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          params: {
-            apikey: credentials.consumerKey,
-          },
-        })
-
-        const locations = locationsResponse.data
-        const devices: any[] = []
-
-        // Extract devices from all locations
-        if (Array.isArray(locations)) {
-          locations.forEach((location: any) => {
-            if (location.devices && Array.isArray(location.devices)) {
-              location.devices.forEach((device: any) => {
-                devices.push({
-                  ...device,
-                  locationName: location.name,
-                  locationId: location.locationID,
-                })
-              })
-            }
-          })
-        }
+        const { credentials, accessToken } = await this.getValidCredentials()
+        const { devices } = await this.getLocationsAndDevices(credentials, accessToken)
 
         // Transform devices for webUI format with enhanced metadata
         const webUIDevices = devices.map((device: any) => {
@@ -450,6 +281,116 @@ export class PluginUiServer extends HomebridgePluginUiServer {
     })
 
     this.ready()
+  }
+
+  /**
+   * Setup API helper methods for common operations.
+   */
+  private setupApiHelpers(): void {
+    // Helper methods are defined below as class methods
+  }
+
+  /**
+   * Common method to get API credentials and refresh access token.
+   */
+  private async getValidCredentials(): Promise<{ credentials: Credentials, accessToken: string }> {
+    // Read the current config to get credentials
+    const configPath = this.homebridgeConfigPath || ''
+    if (!configPath || !fs.existsSync(configPath)) {
+      throw new Error('Homebridge config.json not found')
+    }
+
+    const configData = await fs.promises.readFile(configPath, 'utf8')
+    const config = JSON.parse(configData)
+
+    // Find the Resideo platform config
+    const platformConfig = config.platforms?.find((platform: Config) =>
+      platform.platform === 'Resideo',
+    )
+
+    if (!platformConfig?.credentials) {
+      throw new Error('Resideo credentials not found in config. Please complete initial setup.')
+    }
+
+    const credentials = platformConfig.credentials
+
+    if (!credentials.consumerKey || !credentials.consumerSecret || !credentials.refreshToken) {
+      throw new Error('Invalid credentials configuration. Please complete initial setup.')
+    }
+
+    // Get a fresh access token
+    let accessToken = credentials.accessToken
+
+    try {
+      const tokenResponse = await axios({
+        url: TokenURL,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        auth: {
+          username: credentials.consumerKey,
+          password: credentials.consumerSecret,
+        },
+        data: stringify({
+          grant_type: 'refresh_token',
+          refresh_token: credentials.refreshToken,
+        }),
+        responseType: 'json',
+      })
+
+      accessToken = tokenResponse.data.access_token
+
+      // Update the config with the new tokens if they changed
+      if (tokenResponse.data.refresh_token !== credentials.refreshToken) {
+        credentials.refreshToken = tokenResponse.data.refresh_token
+        credentials.accessToken = accessToken
+        await fs.promises.writeFile(configPath, JSON.stringify(config, null, 4))
+      }
+    } catch (tokenError: any) {
+      console.error('Failed to refresh access token:', tokenError.message)
+      throw new Error('Authentication failed. Please complete initial setup in the plugin configuration.')
+    }
+
+    return { credentials, accessToken }
+  }
+
+  /**
+   * Common method to get locations and devices from Resideo API.
+   */
+  private async getLocationsAndDevices(credentials: Credentials, accessToken: string): Promise<{ locations: any[], devices: any[] }> {
+    // Get locations and devices from Resideo API
+    const locationsResponse = await axios({
+      url: LocationURL,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      params: {
+        apikey: credentials.consumerKey,
+      },
+    })
+
+    const locations = locationsResponse.data
+    const devices: any[] = []
+
+    // Extract devices from all locations
+    if (Array.isArray(locations)) {
+      locations.forEach((location: any) => {
+        if (location.devices && Array.isArray(location.devices)) {
+          location.devices.forEach((device: any) => {
+            devices.push({
+              ...device,
+              locationName: location.name,
+              locationId: location.locationID,
+            })
+          })
+        }
+      })
+    }
+
+    return { locations, devices }
   }
 }
 
