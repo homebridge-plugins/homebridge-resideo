@@ -35,9 +35,6 @@
    </div>
 </div>
 <div id="menuWrapper" class="btn-group w-100 mb-0" role="group" aria-label="UI Menu" style="display: none;">
-   <button type="button" class="btn btn-primary ml-0" id="menuAccount">
-      Account
-   </button>
    <button type="button" class="btn btn-primary" id="menuSettings">
       Settings
    </button>
@@ -67,107 +64,9 @@
       <button type="button" class="btn btn-primary" id="firstRun">Setup Account &rarr;</button>
    </div>
 </div>
-<div id="pageAccount" class="mt-4" style="display: none;">
-   <div class="alert alert-warning" style="display: none;" id="validateForm">
-      Please enter both values
-   </div>
-   <div class="alert alert-success" style="display: none;" id="linkSuccess">
-      Config saved, please close this window and restart Homebridge
-   </div>
-   <div class="form-group">
-      <label for="inputConsumerKey">Consumer Key <span class="text-danger">*</span></label>
-      <input type="text" class="form-control" id="inputConsumerKey">
-   </div>
-   <div class="form-group">
-      <label for="inputConsumerSecret">Consumer Secret <span class="text-danger">*</span></label>
-      <input type="text" class="form-control" id="inputConsumerSecret">
-   </div>
-   <div class="form-group text-center">
-      <button type="button" class="btn btn-primary" id="backToIntro">&larr;</button>
-      <button type="button" class="btn btn-primary" id="linkButton">Continue &rarr;</button>
-      <button type="button" class="btn btn-danger" id="unLinkButton">Unlink Account &rarr;</button>
-   </div>
-</div>
 <!-- Dynamic device configuration UI will be rendered here by webUI -->
 <div id="pageFeatureOptions" class="mt-4" style="display: none;">
-</div>
-<div id="pageDevices" class="mt-4" style="display: none;">
-   <div class="alert alert-info" id="deviceConfigInfo">
-      <h5>Device Configuration Made Easy</h5>
-      <p class="mb-2">This section shows devices available from your Resideo account and provides dynamic configuration options.</p>
-      <p class="mb-0">Select a device below to view its details and configure its settings using the feature options system.</p>
-   </div>
-   <div id="deviceInfo">
-      <h5>Cached Devices</h5>
-      <p>These are devices already configured in Homebridge:</p>
-      <form>
-         <div class="form-group">
-            <label for="deviceSelect"><strong>Available Devices:</strong></label>
-            <select class="form-control" id="deviceSelect"></select>
-         </div>
-      </form>
-      <div id="quickConfigSection" style="display: none;" class="mt-3">
-         <div class="alert alert-success">
-            <h6>Quick Configuration</h6>
-            <p class="mb-2">Copy the device ID below and paste it into the plugin settings:</p>
-            <div class="input-group">
-               <input type="text" class="form-control" id="quickDeviceID" readonly>
-               <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="copyDeviceID">Copy</button>
-               </div>
-            </div>
-            <small class="form-text text-muted mt-2">
-               Recommended device class: <span id="recommendedClass"></span><br>
-               Suggested device model: <span id="suggestedModel"></span>
-            </small>
-         </div>
-      </div>
-      <table class="table w-100" id="deviceTable" style="display: none;">
-         <thead>
-            <tr class="table-active">
-               <th scope="col" style="width: 40%;">Device Name</th>
-               <th scope="col" style="width: 60%;" id="displayName"></th>
-            </tr>
-         </thead>
-         <tbody>
-            <tr>
-               <th scope="row">Device ID</th>
-               <td id="deviceID"></td>
-            </tr>
-            <tr>
-               <th scope="row">Model</th>
-               <td id="model"></td>
-            </tr>
-            <tr>
-               <th scope="row">Firmware Version</th>
-               <td id="firmwareRevision"></td>
-            </tr>
-         </tbody>
-      </table>
-   </div>
-   
-   <hr class="my-4">
-   
-   <div id="availableDevices">
-      <h5>Available Devices from Resideo</h5>
-      <p>These are all devices found in your Resideo account. Use the Device ID to add new devices to your configuration:</p>
-      <button type="button" class="btn btn-primary mb-3" id="refreshDevicesButton">Refresh Device List</button>
-      <div id="availableDevicesMessage" style="display: none;" class="alert alert-info" role="alert"></div>
-      <table class="table w-100" id="availableDevicesTable" style="display: none;">
-         <thead>
-            <tr class="table-active">
-               <th scope="col">Device Name</th>
-               <th scope="col">Device ID</th>
-               <th scope="col">Device Class</th>
-               <th scope="col">Model</th>
-               <th scope="col">Location</th>
-               <th scope="col">Status</th>
-            </tr>
-         </thead>
-         <tbody id="availableDevicesTableBody">
-         </tbody>
-      </table>
-   </div>
+   <!-- Device feature options will be automatically rendered here by homebridge-plugin-utils webUi -->
 </div>
 <div id="pageSupport" class="mt-4" style="display: none;">
    <p class="text-center lead">Thank you for using <strong>homebridge-resideo</strong></p>
@@ -411,29 +310,10 @@
 
       window.copyMyText = () => {
          const textToCopy = document.getElementById("copyMe");
-         textToCopy.select();
-         document.execCommand("copy");
-      };
-
-      window.linkAccount = async () => {
-         document.getElementById('validateForm').style.display = 'none';
-         if (!document.getElementById('inputConsumerKey').value || !document.getElementById('inputConsumerSecret').value) {
-            document.getElementById('validateForm').style.display = 'block';
-            return;
+         if (textToCopy) {
+            textToCopy.select();
+            document.execCommand("copy");
          }
-         const w = 450;
-         const h = 700;
-         const y = window.top.outerHeight / 2 + window.top.screenY - (h / 2);
-         const x = window.top.outerWidth / 2 + window.top.screenX - (w / 2);
-         const urlToOpen = 'http://' + hostname + ':8585/start?' +
-            'key=' + document.getElementById('inputConsumerKey').value +
-            '&secret=' + document.getElementById('inputConsumerSecret').value +
-            '&host=' + encodeURI(hostname);
-         window.popup = window.open(
-            urlToOpen, 'honeywell-auth',
-            'toolbar=no, location=no, directories=no, status=no, menubar=no scrollbars=no, resizable=no, copyhistory=no, ' +
-            'width=' + w + ', height=' + h + ', top=' + y + ', left=' + x,
-         );
       };
 
       // Initialize legacy components for backwards compatibility
