@@ -162,14 +162,21 @@
             const config = currentConfig[0];
             const credentials = config?.credentials;
             
-            // All four credential fields are required to skip first-run setup
-            const requiredCredentials = ['consumerKey', 'consumerSecret', 'accessToken', 'refreshToken'];
-            const hasAllCredentials = requiredCredentials.every(field => 
-               credentials?.[field] && credentials[field].trim() !== ''
-            );
+            // Check for valid credentials - we need at least consumerKey, consumerSecret and refreshToken
+            // accessToken can be regenerated from refreshToken, so it's not strictly required for skipping first-run
+            if (!credentials) {
+               return true;
+            }
             
-            // Return true if first-run is required (missing credentials), false if can skip
-            return !hasAllCredentials;
+            const hasMinimumCredentials = credentials.consumerKey && 
+                                        credentials.consumerKey.trim() !== '' &&
+                                        credentials.consumerSecret && 
+                                        credentials.consumerSecret.trim() !== '' &&
+                                        credentials.refreshToken && 
+                                        credentials.refreshToken.trim() !== '';
+            
+            // Return true if first-run is required (missing minimum credentials), false if can skip
+            return !hasMinimumCredentials;
          },
          onStart: () => {
             // Simple first run initialization - no legacy config handling
@@ -240,28 +247,54 @@
                      if (popup.closed) {
                         clearInterval(checkClosed);
                         
-                        // Wait a moment for config to update
-                        setTimeout(() => {
-                           // Check if authentication completed successfully by verifying all required credentials
+                        // Enhanced credential verification with multiple checks and longer timeout
+                        let verificationAttempts = 0;
+                        const maxAttempts = 10; // Check up to 10 times
+                        
+                        const verifyCredentials = () => {
+                           verificationAttempts++;
+                           
+                           // Check if authentication completed successfully
                            const updatedConfig = homebridge.getPluginConfig();
                            const credentials = Array.isArray(updatedConfig) && updatedConfig[0]?.credentials;
-                           const hasCompleteAuth = credentials?.accessToken && 
-                                                 credentials?.refreshToken && 
-                                                 credentials?.consumerKey && 
-                                                 credentials?.consumerSecret;
+                           
+                           // We need at least consumerKey, consumerSecret, and refreshToken for success
+                           const hasMinimumAuth = credentials?.consumerKey && 
+                                                credentials?.consumerSecret && 
+                                                credentials?.refreshToken;
+                           
+                           const hasCompleteAuth = hasMinimumAuth && credentials?.accessToken;
                            
                            if (hasCompleteAuth) {
                               if (errorDiv) {
                                  errorDiv.innerHTML = '<div class="alert alert-success"><strong>Success!</strong> Your account has been linked successfully.</div>';
                               }
-                              resolve(true);
-                           } else {
+                              // Force UI refresh to update isRequired state
+                              setTimeout(() => {
+                                 resolve(true);
+                              }, 100);
+                           } else if (hasMinimumAuth && verificationAttempts >= maxAttempts) {
+                              // We have minimum credentials but no access token after max attempts
+                              // This is actually acceptable since access token can be refreshed
+                              if (errorDiv) {
+                                 errorDiv.innerHTML = '<div class="alert alert-success"><strong>Success!</strong> Your account has been linked successfully.</div>';
+                              }
+                              setTimeout(() => {
+                                 resolve(true);
+                              }, 100);
+                           } else if (verificationAttempts >= maxAttempts) {
                               if (errorDiv) {
                                  errorDiv.innerHTML = '<div class="alert alert-warning"><strong>Authentication incomplete.</strong> Please try the setup process again or check your Resideo developer credentials.</div>';
                               }
                               resolve(false);
+                           } else {
+                              // Continue checking
+                              setTimeout(verifyCredentials, 1000);
                            }
-                        }, 500);
+                        };
+                        
+                        // Start verification after a short delay
+                        setTimeout(verifyCredentials, 500);
                      }
                   }, 1000);
                });
@@ -304,7 +337,11 @@
                
                await homebridge.updatePluginConfig(currentConfig);
                await homebridge.savePluginConfig();
-               homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
+               
+               // Notify success and give the UI time to process the credential update
+               setTimeout(() => {
+                  homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
+               }, 200);
             }
          } catch (err) {
             console.log(err);
