@@ -59,6 +59,11 @@ export interface options {
   refreshRate?: number
   updateRate?: number
   pushRate?: number
+  // API optimization options
+  apiRetryAttempts?: number
+  apiRetryDelay?: number
+  apiTimeout?: number
+  enableApiHealthCheck?: boolean
   // devices array removed - now handled by webUi feature options
   devices?: devicesConfig[] // Kept for legacy compatibility during migration
 }
