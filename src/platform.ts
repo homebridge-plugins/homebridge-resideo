@@ -319,7 +319,17 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
                 this.debugLog(`Config deviceID: ${deviceID}`)
                 return { ...device, deviceID }
               }))
-            : deviceLists.map((v: any) => v)
+            : deviceLists.map((device: resideoDevice) => {
+                const deviceID = String(device.deviceID).trim()
+                this.debugLog(`Device List deviceID: ${deviceID} (no config, using defaults)`)
+                return { 
+                  ...device, 
+                  deviceID,
+                  configDeviceName: device.userDefinedDeviceName, // Use API name as default
+                  hide_device: false, // Show device by default
+                  external: false, // Platform device by default
+                } as resideoDevice & devicesConfig
+              })
           for (const device of devices) {
             this.debugLog(`Discovered Device with Config: ${JSON.stringify(device)}`)
             await this.deviceClass(location, device)

@@ -66,7 +66,7 @@ export interface options {
 export interface devicesConfig extends resideoDevice {
   deviceID: string | number // Updated to handle both string and number
   deviceClass: string
-  configDeviceName: string
+  configDeviceName?: string // Made optional - defaults to userDefinedDeviceName
   hide_device?: boolean
   thermostat?: thermostat
   valve?: valve
