@@ -304,7 +304,11 @@
                
                await homebridge.updatePluginConfig(currentConfig);
                await homebridge.savePluginConfig();
-               homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
+               
+               // Notify success and give the UI time to process the credential update
+               setTimeout(() => {
+                  homebridge.toast.success("Successfully Linked Resideo Account", "homebridge-resideo");
+               }, 200);
             }
          } catch (err) {
             console.log(err);
