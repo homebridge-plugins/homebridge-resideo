@@ -564,9 +564,11 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     try {
       const locations = await this.discoverlocations() as locations ?? []
       this.infoLog(`Total Locations Found: ${locations?.length}`)
+      this.debugLog(`Locations Data: ${JSON.stringify(locations)}`)
       if (locations.length > 0) {
         for (const location of locations) {
           this.infoLog(`Total Devices Found at ${location.name}: ${location.devices.length}`)
+          this.debugLog(`Devices Data: ${JSON.stringify(location.devices)}`)
           const deviceLists = location.devices
           const devices = this.config.options?.devices
             ? this.mergeByDeviceID(deviceLists.map((device) => {
