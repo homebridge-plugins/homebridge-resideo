@@ -52,6 +52,8 @@ export interface credentials {
 }
 
 export interface options {
+  preferMatter?: boolean
+  enableMatter?: boolean
   allowInvalidCharacters?: boolean
   logging?: string
   maxRetries?: number

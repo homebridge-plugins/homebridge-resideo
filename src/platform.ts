@@ -301,7 +301,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  private async discoverDevices() {
+  protected async discoverDevices() {
     try {
       const locations = await this.discoverlocations() as locations ?? []
       this.infoLog(`Total Locations Found: ${locations?.length}`)

@@ -49,6 +49,18 @@
       "options": {
         "type": "object",
         "properties": {
+          "preferMatter": {
+            "title": "Prefer Matter",
+            "type": "boolean",
+            "default": true,
+            "description": "When Matter is available in Homebridge v2.0+, prefer registering devices as Matter accessories. Requires enableMatter to also be true."
+          },
+          "enableMatter": {
+            "title": "Enable Matter",
+            "type": "boolean",
+            "default": true,
+            "description": "Allow the plugin to use the Homebridge Matter API (Homebridge v2.0+). Set to false to always use the HAP path."
+          },
           "devices": {
             "type": "array",
             "items": {

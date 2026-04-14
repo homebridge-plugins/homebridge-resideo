@@ -5,9 +5,12 @@
 import type { API } from 'homebridge'
 
 import { ResideoPlatform } from './platform.js'
+import { ResideoMatterPlatform } from './ResideoMatterPlatform.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
+import { createPlatformProxy } from './utils.js'
 
 // Register our platform with homebridge.
 export default (api: API): void => {
-  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, ResideoPlatform)
+  const ProxyCtor = createPlatformProxy(ResideoPlatform, ResideoMatterPlatform)
+  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, ProxyCtor as any)
 }
