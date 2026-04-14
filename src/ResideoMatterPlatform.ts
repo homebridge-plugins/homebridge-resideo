@@ -2,9 +2,9 @@
  *
  * ResideoMatterPlatform.ts: homebridge-resideo Matter platform.
  */
-import type { API, Logging, PlatformConfig } from 'homebridge'
+import type { API, Logging, PlatformAccessory } from 'homebridge'
 
-import type { ResideoPlatformConfig } from './settings.js'
+import type { location, locations, ResideoPlatformConfig } from './settings.js'
 
 import { ResideoPlatform } from './platform.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
@@ -25,6 +25,19 @@ export class ResideoMatterPlatform extends ResideoPlatform {
 
   constructor(log: Logging, config: ResideoPlatformConfig, api: API) {
     super(log, config, api)
+  }
+
+  /**
+   * Delegates to the base-class implementation so the HAP accessories array
+   * (`this.accessories`) is always populated. This is required for the HAP
+   * fallback path inside `discoverDevices` to work correctly and prevents
+   * duplicate HAP accessories from being created on re-launch.
+   *
+   * When Matter mode is active those HAP accessories will be unregistered at
+   * the start of `discoverDevices`, cleanly migrating away from legacy HAP.
+   */
+  configureAccessory(accessory: PlatformAccessory): void {
+    super.configureAccessory(accessory)
   }
 
   /**
@@ -49,6 +62,9 @@ export class ResideoMatterPlatform extends ResideoPlatform {
    *
    * When Matter is active all discovered Resideo devices are registered as
    * Matter accessories via `api.matter.registerPlatformAccessories`.
+   * Any previously cached HAP accessories are unregistered first to avoid
+   * leaving stale HAP accessories when transitioning to Matter.
+   *
    * When Matter is not active the call is delegated to the parent HAP
    * implementation so the plugin continues to work with Homebridge v1.x.
    */
@@ -60,8 +76,18 @@ export class ResideoMatterPlatform extends ResideoPlatform {
 
     this.infoLog('Matter is available and enabled – registering Resideo devices as Matter accessories.')
 
+    // Unregister any legacy HAP accessories that were restored from cache so
+    // they don't remain as duplicate/stale entries alongside Matter accessories.
+    if (this.accessories.length > 0) {
+      this.debugLog(`Removing ${this.accessories.length} cached HAP accessory(s) before switching to Matter.`)
+      for (const hapAccessory of this.accessories) {
+        this.unregisterPlatformAccessories(hapAccessory)
+      }
+      this.accessories.length = 0
+    }
+
     try {
-      const locations = (await (this as any).discoverlocations()) as any[] ?? []
+      const locations = await this.discoverlocations() as locations ?? []
       this.infoLog(`Total Locations Found: ${locations.length}`)
 
       if (locations.length === 0) {
@@ -73,13 +99,13 @@ export class ResideoMatterPlatform extends ResideoPlatform {
       const accessories: any[] = []
 
       for (const location of locations) {
-        this.infoLog(`Total Devices Found at ${location.name}: ${location.devices.length}`)
+        this.infoLog(`Total Devices Found at ${location.name}: ${(location as location).devices.length}`)
 
-        const deviceLists: any[] = location.devices
+        const deviceLists: any[] = (location as location).devices
         const configDevices = this.config.options?.devices
 
         const devices = configDevices
-          ? (this as any).mergeByDeviceID(
+          ? this.mergeByDeviceID(
               deviceLists.map((device: any) => ({ ...device, deviceID: String(device.deviceID).trim() })),
               configDevices.map((device: any) => ({ ...device, deviceID: String(device.deviceID).trim() })),
             )
@@ -117,8 +143,8 @@ export class ResideoMatterPlatform extends ResideoPlatform {
         await matterApi.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessories)
       }
     } catch (e: any) {
-      ;(this as any).action = 'Discover Devices (Matter)'
-      ;(this as any).apiError(e)
+      this.action = 'Discover Devices (Matter)'
+      this.apiError(e)
     }
   }
 }

@@ -334,7 +334,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  private mergeByDeviceID(a1: { deviceID: string }[], a2: any[]) {
+  protected mergeByDeviceID(a1: { deviceID: string }[], a2: any[]) {
     return a1.map((itm: { deviceID: string }) => {
       const match = a2.find((item: { deviceID: string }) => item.deviceID === itm.deviceID)
       if (match) {
