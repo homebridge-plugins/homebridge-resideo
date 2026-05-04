@@ -1,6 +1,25 @@
-# Changelog
+## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0) (2026-05-04)
 
-All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
+### Enhancements
+- Homebridge engine requirement updated to `^2.0.0`.
+- Node.js engine requirement updated to `^22 || ^24`.
+- Platform source files renamed to `Platform.HAP.ts` and `Platform.Matter.ts`.
+- Added Homebridge Matter platform support path via `ResideoMatterPlatform`.
+- Refactored API requests to use a shared native Node HTTP(S) client.
+- Updated runtime dependency versions for plugin UI utilities and RxJS.
+
+### Dependencies
+- Updated development dependencies to current major releases (`@antfu/eslint-config`, `@types/node`, `@vitest/coverage-v8`, `eslint`, `homebridge-config-ui-x`, `shx`, `typedoc`, `typescript`, `vitest`).
+
+### Bug Fixes
+- Updated device and platform request flows to use the new shared HTTP client consistently.
+- Updated platform tests to mock the new HTTP client interface.
+- Applied naming and constructor-call cleanups to satisfy current TypeScript/lint diagnostics.
+
+### Documentation
+- Updated development and repository instructions for current project workflows.
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0
 
 ## [3.0.2](https://github.com/homebridge-plugins/homebridge-resideo/releases/tag/v3.0.2) (2025-03-04)
 

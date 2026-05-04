@@ -1,12 +1,12 @@
 /* Copyright(C) 2022-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * ResideoMatterPlatform.ts: homebridge-resideo Matter platform.
+ * Platform.Matter.ts: homebridge-resideo Matter platform.
  */
 import type { API, Logging, PlatformAccessory } from 'homebridge'
 
 import type { location, locations, ResideoPlatformConfig } from './settings.js'
 
-import { ResideoPlatform } from './platform.js'
+import { ResideoPlatform } from './Platform.HAP.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 /**
@@ -129,7 +129,8 @@ export class ResideoMatterPlatform extends ResideoPlatform {
             this.matterAccessories.set(uuid, existingAccessory)
           } else {
             this.debugLog(`Creating new Matter accessory for: ${displayName} (${device.deviceClass})`)
-            const accessory = new (this.api as any).matterAccessory(displayName, uuid)
+            const MatterAccessory = (this.api as any).matterAccessory
+            const accessory = new MatterAccessory(displayName, uuid)
             accessory.context.device = device
             accessory.context.location = location
             accessories.push(accessory)

@@ -4,8 +4,8 @@
  */
 import type { API } from 'homebridge'
 
-import { ResideoPlatform } from './platform.js'
-import { ResideoMatterPlatform } from './ResideoMatterPlatform.js'
+import { ResideoPlatform } from './Platform.HAP.js'
+import { ResideoMatterPlatform } from './Platform.Matter.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 import { createPlatformProxy } from './utils.js'
 

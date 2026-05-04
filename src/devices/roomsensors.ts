@@ -4,7 +4,7 @@
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
-import type { ResideoPlatform } from '../platform.js'
+import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { accessoryValue, devicesConfig, location, resideoDevice, sensorAccessory, T9groups } from '../settings.js'
 
 import { interval, Subject } from 'rxjs'

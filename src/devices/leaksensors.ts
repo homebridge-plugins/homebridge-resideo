@@ -4,7 +4,7 @@
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
-import type { ResideoPlatform } from '../platform.js'
+import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { CurrentSensorReadings, devicesConfig, location, resideoDevice } from '../settings.js'
 
 import { interval, Subject } from 'rxjs'
@@ -254,7 +254,7 @@ export class LeakSensor extends deviceBase {
   async refreshStatus(): Promise<void> {
     try {
       const device: any = (
-        await this.platform.axios.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
+        await this.platform.httpClient.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
           params: {
             locationId: this.location.locationID,
           },

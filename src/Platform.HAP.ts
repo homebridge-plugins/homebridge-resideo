@@ -1,10 +1,10 @@
-import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 /* Copyright(C) 2022-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * platform.ts: homebridge-resideo.
+ * Platform.HAP.ts: homebridge-resideo.
  */
 import type { API, DynamicPlatformPlugin, HAP, Logging, PlatformAccessory } from 'homebridge'
 
+import type { HttpClient } from './http-client.js'
 import type {
   accessoryAttribute,
   devicesConfig,
@@ -22,13 +22,12 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { argv } from 'node:process'
 import { stringify } from 'node:querystring'
 
-import axios from 'axios'
-
 import { LeakSensor } from './devices/leaksensors.js'
 import { RoomSensors } from './devices/roomsensors.js'
 import { RoomSensorThermostat } from './devices/roomsensorthermostats.js'
 import { Thermostats } from './devices/thermostats.js'
 import { Valve } from './devices/valve.js'
+import { NativeHttpClient } from './http-client.js'
 import {
   DeviceURL,
   LocationURL,
@@ -59,9 +58,16 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   version!: string
   action!: string
 
-  public axios: AxiosInstance = axios.create({
+  public httpClient: HttpClient = new NativeHttpClient(() => ({
     responseType: 'json',
-  })
+    headers: {
+      'Authorization': `Bearer ${this.config.credentials?.accessToken ?? ''}`,
+      'Content-Type': 'application/json',
+    },
+    params: {
+      apikey: this.config.credentials?.consumerKey ?? '',
+    },
+  }))
 
   constructor(log: Logging, config: ResideoPlatformConfig, api: API) {
     this.api = api
@@ -95,15 +101,6 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       this.apiError(e)
       return
     }
-
-    // setup axios interceptor to add headers / api key to each request
-    this.axios.interceptors.request.use((request: InternalAxiosRequestConfig) => {
-      request.headers!.Authorization = `Bearer ${this.config.credentials?.accessToken}`
-      request.params = request.params || {}
-      request.params.apikey = this.config.credentials?.consumerKey
-      request.headers!['Content-Type'] = 'application/json'
-      return request
-    })
 
     this.api.on('didFinishLaunching', async () => {
       this.debugLog('Executed didFinishLaunching callback')
@@ -180,10 +177,13 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       let result: any
 
       if (this.config.credentials!.consumerSecret && this.config.credentials?.consumerKey && this.config.credentials?.refreshToken) {
-        result = (
-          await axios({
-            url: TokenURL,
-            method: 'POST',
+        result = (await this.httpClient.post(
+          TokenURL,
+          stringify({
+            grant_type: 'refresh_token',
+            refresh_token: this.config.credentials.refreshToken,
+          }),
+          {
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
             },
@@ -191,13 +191,10 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
               username: this.config.credentials.consumerKey,
               password: this.config.credentials.consumerSecret,
             },
-            data: stringify({
-              grant_type: 'refresh_token',
-              refresh_token: this.config.credentials.refreshToken,
-            }),
+            params: {},
             responseType: 'json',
-          })
-        ).data
+          },
+        )).data
       } else {
         this.warnLog('Please re-link your account in the Homebridge UI.')
       }
@@ -247,13 +244,13 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   }
 
   async discoverlocations(): Promise<location[]> {
-    const locations = (await this.axios.get(LocationURL)).data
+    const locations = (await this.httpClient.get<location[]>(LocationURL)).data
     return locations
   }
 
   public async getCurrentSensorData(location: location, device: resideoDevice & devicesConfig, group: T9groups) {
     if (!this.sensorData[device.deviceID] || this.sensorData[device.deviceID].timestamp < Date.now()) {
-      const response: any = await this.axios.get(`${DeviceURL}/thermostats/${device.deviceID}/group/${group.id}/rooms`, {
+      const response: any = await this.httpClient.get(`${DeviceURL}/thermostats/${device.deviceID}/group/${group.id}/rooms`, {
         params: {
           locationId: location.locationID,
         },
@@ -435,7 +432,8 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       if (!device.external) {
         this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`)
       }
-      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid)
+      const PlatformAccessory = this.api.platformAccessory
+      const accessory = new PlatformAccessory(device.userDefinedDeviceName, uuid)
       await this.thermostatFirmwareNewAccessory(device, accessory, location)
       accessory.displayName = device.configDeviceName
         ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
@@ -475,7 +473,8 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       if (!device.external) {
         this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`)
       }
-      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid)
+      const PlatformAccessory = this.api.platformAccessory
+      const accessory = new PlatformAccessory(device.userDefinedDeviceName, uuid)
       accessory.displayName = device.configDeviceName
         ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
         : await this.validateAndCleanDisplayName(device.userDefinedDeviceName, 'userDefinedDeviceName', device.userDefinedDeviceName)
@@ -516,7 +515,8 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       if (!device.external) {
         this.infoLog(`Adding new accessory: ${device.userDefinedDeviceName} ${device.deviceClass} Device ID: ${device.deviceID}`)
       }
-      const accessory = new this.api.platformAccessory(device.userDefinedDeviceName, uuid)
+      const PlatformAccessory = this.api.platformAccessory
+      const accessory = new PlatformAccessory(device.userDefinedDeviceName, uuid)
       accessory.displayName = device.configDeviceName
         ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
         : await this.validateAndCleanDisplayName(device.userDefinedDeviceName, 'userDefinedDeviceName', device.userDefinedDeviceName)
@@ -556,7 +556,8 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       if (!device.external) {
         this.infoLog(`Adding new accessory: ${sensorAccessory.accessoryAttribute.name} ${sensorAccessory.accessoryAttribute.type} Device ID: ${sensorAccessory.accessoryAttribute.serialNumber}`)
       }
-      const accessory = new this.api.platformAccessory(sensorAccessory.accessoryAttribute.name, uuid)
+      const PlatformAccessory = this.api.platformAccessory
+      const accessory = new PlatformAccessory(sensorAccessory.accessoryAttribute.name, uuid)
       accessory.displayName = device.configDeviceName
         ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
         : await this.validateAndCleanDisplayName(sensorAccessory.accessoryAttribute.name, 'accessoryAttributeName', sensorAccessory.accessoryAttribute.name)
@@ -595,7 +596,8 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       if (!device.external) {
         this.infoLog(`Adding new accessory: ${sensorAccessory.accessoryAttribute.name} ${sensorAccessory.accessoryAttribute.type} Serial Number: ${sensorAccessory.accessoryAttribute.serialNumber}`)
       }
-      const accessory = new this.api.platformAccessory(sensorAccessory.accessoryAttribute.name, uuid)
+      const PlatformAccessory = this.api.platformAccessory
+      const accessory = new PlatformAccessory(sensorAccessory.accessoryAttribute.name, uuid)
       accessory.displayName = device.configDeviceName
         ? await this.validateAndCleanDisplayName(device.configDeviceName, 'configDeviceName', device.userDefinedDeviceName)
         : await this.validateAndCleanDisplayName(sensorAccessory.accessoryAttribute.name, 'accessoryAttributeName', sensorAccessory.accessoryAttribute.name)
