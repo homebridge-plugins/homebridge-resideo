@@ -2,6 +2,7 @@
  *
  * util.ts: homebridge-resideo platform class.
  */
+import type { PlatformConfig } from 'homebridge'
 
 /**
  * Converts the value to celsius if the temperature units are in Fahrenheit
@@ -59,3 +60,35 @@ export type resideoHold = {
   TemporaryHold: 'TemporaryHold',
   PermanentHold: 'PermanentHold'
 }; */
+
+/**
+ * Creates a proxy class that instantiates the correct platform implementation
+ * (HAP or Matter) at runtime based on the user's configuration and the
+ * availability of the Matter API in the running Homebridge instance.
+ *
+ * @param HAPPlatform  The HAP platform class constructor.
+ * @param MatterPlatform The Matter platform class constructor.
+ * @returns A proxy class that delegates to the correct platform implementation.
+ */
+export function createPlatformProxy(HAPPlatform: any, MatterPlatform: any): any {
+  return class ResideoPlatformProxy {
+    /** The instantiated platform implementation (HAP or Matter). */
+    private impl: any
+
+    constructor(log: any, config: PlatformConfig, api: any) {
+      const preferMatter = (config as any)?.options?.preferMatter ?? true
+      const enableMatter = (config as any)?.options?.enableMatter ?? true
+      const matterAvailable = !!(api?.isMatterAvailable?.() && api?.isMatterEnabled?.())
+
+      if (enableMatter && preferMatter && MatterPlatform && matterAvailable) {
+        this.impl = new MatterPlatform(log, config, api)
+        return this.impl
+      }
+
+      // Fallback to HAP
+      this.impl = new HAPPlatform(log, config, api)
+      return this.impl
+    }
+  }
+}
+

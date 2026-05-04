@@ -4,7 +4,7 @@
  */
 import type { API, HAP, Logging, PlatformAccessory } from 'homebridge'
 
-import type { ResideoPlatform } from '../platform.js'
+import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { devicesConfig, location, resideoDevice, ResideoPlatformConfig, sensorAccessory, T9groups } from '../settings.js'
 
 export abstract class deviceBase {

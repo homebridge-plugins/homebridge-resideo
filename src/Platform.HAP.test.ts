@@ -1,14 +1,10 @@
 import type { API, Logging } from 'homebridge'
-import type { MockedFunction } from 'vitest'
 
 import type { ResideoPlatformConfig } from './settings.js'
 
-import axios from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ResideoPlatform } from './platform.js'
-
-vi.mock('axios')
+import { ResideoPlatform } from './Platform.HAP.js'
 
 describe('resideoPlatform', () => {
   let platform: ResideoPlatform
@@ -78,11 +74,13 @@ describe('resideoPlatform', () => {
   })
 
   it('should refresh access token', async () => {
-    (axios.post as MockedFunction<typeof axios.post>).mockResolvedValue({
+    vi.spyOn(platform.httpClient, 'post').mockResolvedValue({
       data: {
         access_token: 'newAccessToken',
         refresh_token: 'newRefreshToken',
       },
+      status: 200,
+      headers: {},
     })
 
     await platform.refreshAccessToken()
@@ -92,8 +90,8 @@ describe('resideoPlatform', () => {
   })
 
   it('should discover locations', async () => {
-    const mockLocations = [{ locationID: '1', name: 'Location 1', devices: [] }];
-    (axios.get as MockedFunction<typeof axios.get>).mockResolvedValue({ data: mockLocations })
+    const mockLocations = [{ locationID: '1', name: 'Location 1', devices: [] }]
+    vi.spyOn(platform.httpClient, 'get').mockResolvedValue({ data: mockLocations, status: 200, headers: {} })
 
     const locations = await platform.discoverlocations()
 
@@ -101,7 +99,7 @@ describe('resideoPlatform', () => {
   })
 
   it('should handle error during location discovery', async () => {
-    (axios.get as MockedFunction<typeof axios.get>).mockRejectedValue(new Error('Network Error'))
+    vi.spyOn(platform.httpClient, 'get').mockRejectedValue(new Error('Network Error'))
 
     await expect(platform.discoverlocations()).rejects.toThrow('Network Error')
   })

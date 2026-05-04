@@ -4,7 +4,7 @@
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
-import type { ResideoPlatform } from '../platform.js'
+import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { devicesConfig, fanStatus, location, payload, resideoDevice, roomPriorityStatus } from '../settings.js'
 
 // import { request } from 'undici';
@@ -554,7 +554,7 @@ export class Thermostats extends deviceBase {
 
   private async getDeviceStatus() {
     const device: any = (
-      await this.platform.axios.get(`${DeviceURL}/thermostats/${this.device.deviceID}`, {
+      await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}`, {
         params: {
           locationId: this.location.locationID,
         },
@@ -568,7 +568,7 @@ export class Thermostats extends deviceBase {
   private async getRoomPriorityStatus() {
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat' && this.device.deviceModel === 'T9-T10') {
       const roompriority = (
-        await this.platform.axios.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
+        await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
           params: {
             locationId: this.location.locationID,
           },
@@ -584,7 +584,7 @@ export class Thermostats extends deviceBase {
   private async getFanStatus() {
     if (this.device.settings?.fan && !this.device.thermostat?.hide_fan) {
       const fan: any = (
-        await this.platform.axios.get(`${DeviceURL}/thermostats/${this.device.deviceID}/fan`, {
+        await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}/fan`, {
           params: {
             locationId: this.location.locationID,
           },
@@ -716,7 +716,7 @@ export class Thermostats extends deviceBase {
       }
 
       // Attempt to make the API request
-      await this.platform.axios.post(`${DeviceURL}/thermostats/${this.device.deviceID}`, payload, {
+      await this.platform.httpClient.post(`${DeviceURL}/thermostats/${this.device.deviceID}`, payload, {
         params: {
           locationId: this.location.locationID,
         },
@@ -810,7 +810,7 @@ export class Thermostats extends deviceBase {
           )
         }
         // Make the API request
-        await this.platform.axios.put(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, payload, {
+        await this.platform.httpClient.put(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, payload, {
           params: {
             locationId: this.location.locationID,
           },
@@ -1016,7 +1016,7 @@ export class Thermostats extends deviceBase {
 
       this.successLog(`Sending request for ${this.accessory.displayName} to Resideo API Fan Mode: ${payload.mode}`)
       // Make the API request
-      await this.platform.axios.post(`${DeviceURL}/thermostats/${this.device.deviceID}/fan`, payload, {
+      await this.platform.httpClient.post(`${DeviceURL}/thermostats/${this.device.deviceID}/fan`, payload, {
         params: {
           locationId: this.location.locationID,
         },

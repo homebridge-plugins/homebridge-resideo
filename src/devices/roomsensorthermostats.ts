@@ -4,7 +4,7 @@
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
-import type { ResideoPlatform } from '../platform.js'
+import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { accessoryValue, devicesConfig, location, payload, resideoDevice, sensorAccessory, T9groups } from '../settings.js'
 
 // import { request } from 'undici';
@@ -395,7 +395,7 @@ export class RoomSensorThermostat extends deviceBase {
   async refreshStatus(): Promise<void> {
     try {
       const device: any = (
-        await this.platform.axios.get(`${DeviceURL}/thermostats/${this.device.deviceID}`, {
+        await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}`, {
           params: {
             locationId: this.location.locationID,
           },
@@ -481,7 +481,7 @@ export class RoomSensorThermostat extends deviceBase {
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat') {
       try {
         const roomPriorityStatus = (
-          await this.platform.axios.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
+          await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
             params: {
               locationId: this.location.locationID,
             },
@@ -541,7 +541,7 @@ export class RoomSensorThermostat extends deviceBase {
 
         // Make the API request
         try {
-          await this.platform.axios.put(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, payload, {
+          await this.platform.httpClient.put(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, payload, {
             params: {
               locationId: this.location.locationID,
             },
@@ -603,7 +603,7 @@ export class RoomSensorThermostat extends deviceBase {
       this.successLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.device.deviceClass} ${this.accessory.displayName} set request (${JSON.stringify(payload)}) to Resideo API.`)
 
       // Make the API request
-      await this.platform.axios.post(`${DeviceURL}/thermostats/${this.device.deviceID}`, payload, {
+      await this.platform.httpClient.post(`${DeviceURL}/thermostats/${this.device.deviceID}`, payload, {
         params: {
           locationId: this.location.locationID,
         },
