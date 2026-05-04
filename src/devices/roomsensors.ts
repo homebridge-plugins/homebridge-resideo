@@ -10,7 +10,7 @@ import type { accessoryValue, devicesConfig, location, resideoDevice, sensorAcce
 import { interval, Subject } from 'rxjs'
 import { skipWhile, take } from 'rxjs/operators'
 
-import { toCelsius } from '../utils.js'
+import { toCelsiusWithOverride } from '../utils.js'
 import { deviceBase } from './device.js'
 
 /**
@@ -215,7 +215,7 @@ export class RoomSensors extends deviceBase {
     // Set Temperature Sensor State
     if (!this.device.thermostat?.roomsensor?.hide_temperature) {
       if (this.TemperatureSensor) {
-        this.TemperatureSensor.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, this.hap.Characteristic.TemperatureDisplayUnits.CELSIUS)
+        this.TemperatureSensor.CurrentTemperature = toCelsiusWithOverride(accessoryValue.indoorTemperature, 1, this.platform.config.options?.convertUnits)
         this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.accessory.displayName} CurrentTemperature: ${this.TemperatureSensor.CurrentTemperature}°c`)
       }
     }

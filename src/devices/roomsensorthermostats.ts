@@ -12,7 +12,7 @@ import { interval, Subject } from 'rxjs'
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators'
 
 import { DeviceURL } from '../settings.js'
-import { HomeKitModes, ResideoModes, toCelsius, toFahrenheit } from '../utils.js'
+import { HomeKitModes, ResideoModes, toCelsiusWithOverride, toFahrenheit } from '../utils.js'
 import { deviceBase } from './device.js'
 
 /**
@@ -105,8 +105,8 @@ export class RoomSensorThermostat extends deviceBase {
     // Set Min and Max
     if (device.minHeatSetpoint && device.maxHeatSetpoint) {
       this.debugLog(`${this.device.deviceClass} ${accessory.displayName} minHeatSetpoint: ${device.minHeatSetpoint}, maxHeatSetpoint: ${device.maxHeatSetpoint}, TemperatureDisplayUnits: ${this.Thermostat.TemperatureDisplayUnits}`)
-      const minValue = toCelsius(device.minHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-      const maxValue = toCelsius(device.maxHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      const minValue = toCelsiusWithOverride(device.minHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+      const maxValue = toCelsiusWithOverride(device.maxHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
       this.debugLog(`${sensorAccessory.accessoryAttribute.type} ${this.device.deviceClass} ${accessory.displayName} minValue: ${minValue}, maxValue: ${maxValue}`)
       if (device.changeableValues!.heatCoolMode === 'Heat') {
         this.debugLog(`${sensorAccessory.accessoryAttribute.type} ${this.device.deviceClass} ${accessory.displayName} mode: ${device.changeableValues!.heatCoolMode}`)
@@ -339,7 +339,7 @@ export class RoomSensorThermostat extends deviceBase {
       const accessoryValue = this.sensorAccessory.accessoryValue as accessoryValue
         ?? { indoorTemperature: 20, indoorHumidity: 50 }
 
-      this.Thermostat.CurrentTemperature = toCelsius(accessoryValue.indoorTemperature, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.CurrentTemperature = toCelsiusWithOverride(accessoryValue.indoorTemperature, 1, this.platform.config.options?.convertUnits)
       this.debugLog(`${this.sensorAccessory.accessoryAttribute.type} ${this.device.deviceClass} ${this.accessory.displayName} CurrentTemperature: ${this.Thermostat.CurrentTemperature}`)
 
       if (!this.device.thermostat?.hide_humidity && accessoryValue.indoorHumidity) {
@@ -352,11 +352,11 @@ export class RoomSensorThermostat extends deviceBase {
 
     // Parse the Thermostat status
     if (this.device.changeableValues!.heatSetpoint > 0) {
-      this.Thermostat.HeatingThresholdTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.HeatingThresholdTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     }
 
     if (this.device.changeableValues!.coolSetpoint > 0) {
-      this.Thermostat.CoolingThresholdTemperature = toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.CoolingThresholdTemperature = toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     }
 
     this.Thermostat.TargetHeatingCoolingState = HomeKitModes[this.device.changeableValues!.mode]
@@ -380,11 +380,11 @@ export class RoomSensorThermostat extends deviceBase {
     // Set the TargetTemperature value based on the current mode
     if (this.Thermostat.TargetHeatingCoolingState === this.hap.Characteristic.TargetHeatingCoolingState.HEAT) {
       if (this.device.changeableValues!.heatSetpoint > 0) {
-        this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+        this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
       }
     } else {
       if (this.device.changeableValues!.coolSetpoint > 0) {
-        this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+        this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
       }
     }
   }
@@ -720,9 +720,9 @@ export class RoomSensorThermostat extends deviceBase {
 
     // Set the TargetTemperature value based on the selected mode
     if (this.Thermostat.TargetHeatingCoolingState === this.hap.Characteristic.TargetHeatingCoolingState.HEAT) {
-      this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     } else {
-      this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     }
     this.Thermostat.Service.updateCharacteristic(this.hap.Characteristic.TargetTemperature, this.Thermostat.TargetTemperature)
     if (this.Thermostat.TargetHeatingCoolingState !== HomeKitModes[this.device.changeableValues!.mode]) {

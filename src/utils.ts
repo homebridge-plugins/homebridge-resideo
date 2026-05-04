@@ -4,6 +4,8 @@
  */
 import type { PlatformConfig } from 'homebridge'
 
+import type { ConvertUnitsOption } from './settings.js'
+
 /**
  * Converts the value to celsius if the temperature units are in Fahrenheit
  */
@@ -14,6 +16,18 @@ export function toCelsius(value: number, unit: number): number {
 
   // celsius should be to the nearest 0.5 degree
   return Math.round((5 / 9) * (value - 32) * 2) / 2
+}
+
+export function toCelsiusWithOverride(value: number, unit: number, convertUnits?: ConvertUnitsOption): number {
+  if (convertUnits === 'fahrenheit') {
+    return toCelsius(value, 1)
+  }
+
+  if (convertUnits === 'celsius') {
+    return toCelsius(value, 0)
+  }
+
+  return toCelsius(value, unit)
 }
 
 /**

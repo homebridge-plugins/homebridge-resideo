@@ -12,7 +12,7 @@ import { interval, Subject } from 'rxjs'
 import { debounceTime, skipWhile, take, tap } from 'rxjs/operators'
 
 import { DeviceURL } from '../settings.js'
-import { HomeKitModes, ResideoModes, toCelsius, toFahrenheit } from '../utils.js'
+import { HomeKitModes, ResideoModes, toCelsiusWithOverride, toFahrenheit } from '../utils.js'
 import { deviceBase } from './device.js'
 
 /**
@@ -124,8 +124,8 @@ export class Thermostats extends deviceBase {
     // Set Min and Max
     if (device.minHeatSetpoint && device.maxHeatSetpoint) {
       this.debugLog(`${this.device.deviceClass} ${accessory.displayName} minHeatSetpoint: ${device.minHeatSetpoint}, maxHeatSetpoint: ${device.maxHeatSetpoint}, TemperatureDisplayUnits: ${this.Thermostat.TemperatureDisplayUnits}`)
-      const minValue = toCelsius(device.minHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-      const maxValue = toCelsius(device.maxHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      const minValue = toCelsiusWithOverride(device.minHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+      const maxValue = toCelsiusWithOverride(device.maxHeatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
       this.debugLog(`${this.device.deviceClass} ${accessory.displayName} minValue: ${minValue}, maxValue: ${maxValue}`)
       if (device.changeableValues!.heatCoolMode === 'Heat') {
         this.debugLog(`${device.deviceClass} ${accessory.displayName} is in "${device.changeableValues?.heatCoolMode}" mode`)
@@ -442,8 +442,8 @@ export class Thermostats extends deviceBase {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TemperatureDisplayUnits: ${this.hap.Characteristic.TemperatureDisplayUnits.CELSIUS}`)
     }
 
-    this.Thermostat.CurrentTemperature = toCelsius(this.device.indoorTemperature!, Number(this.Thermostat.TemperatureDisplayUnits))
-    this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CurrentTemperature: ${toCelsius(this.device.indoorTemperature!, Number(this.Thermostat.TemperatureDisplayUnits))}`)
+    this.Thermostat.CurrentTemperature = toCelsiusWithOverride(this.device.indoorTemperature!, 1, this.platform.config.options?.convertUnits)
+    this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CurrentTemperature: ${toCelsiusWithOverride(this.device.indoorTemperature!, 1, this.platform.config.options?.convertUnits)}`)
 
     if (this.device.indoorHumidity) {
       if (this.HumiditySensor) {
@@ -453,13 +453,13 @@ export class Thermostats extends deviceBase {
     }
 
     if (this.device.changeableValues!.heatSetpoint > 0) {
-      this.Thermostat.HeatingThresholdTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus HeatingThresholdTemperature: ${toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))}`)
+      this.Thermostat.HeatingThresholdTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus HeatingThresholdTemperature: ${toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)}`)
     }
 
     if (this.device.changeableValues!.coolSetpoint > 0) {
-      this.Thermostat.CoolingThresholdTemperature = toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CoolingThresholdTemperature: ${toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))}`)
+      this.Thermostat.CoolingThresholdTemperature = toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+      this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus CoolingThresholdTemperature: ${toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)}`)
     }
 
     this.Thermostat.TargetHeatingCoolingState = HomeKitModes[this.device.changeableValues!.mode]
@@ -486,14 +486,14 @@ export class Thermostats extends deviceBase {
     // Set the TargetTemperature value based on the current mode
     if (this.Thermostat.TargetHeatingCoolingState === this.hap.Characteristic.TargetHeatingCoolingState.HEAT) {
       if (this.device.changeableValues!.heatSetpoint > 0) {
-        this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-        this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TargetTemperature (HEAT): ${toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))})`)
+        this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+        this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TargetTemperature (HEAT): ${toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)})`)
       }
     } else {
       if (this.device.changeableValues) {
         if (this.device.changeableValues.coolSetpoint > 0) {
-          this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
-          this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TargetTemperature (OFF/COOL): ${toCelsius(this.device.changeableValues.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))})`)
+          this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
+          this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} parseStatus TargetTemperature (OFF/COOL): ${toCelsiusWithOverride(this.device.changeableValues.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)})`)
         }
       }
     }
@@ -567,7 +567,7 @@ export class Thermostats extends deviceBase {
 
   private async getRoomPriorityStatus() {
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat' && this.device.deviceModel === 'T9-T10') {
-      const roompriority = (
+      const roompriority: any = (
         await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
           params: {
             locationId: this.location.locationID,
@@ -932,9 +932,9 @@ export class Thermostats extends deviceBase {
 
     // Set the TargetTemperature value based on the selected mode
     if (this.Thermostat.TargetHeatingCoolingState === this.hap.Characteristic.TargetHeatingCoolingState.HEAT) {
-      this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.heatSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     } else {
-      this.Thermostat.TargetTemperature = toCelsius(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits))
+      this.Thermostat.TargetTemperature = toCelsiusWithOverride(this.device.changeableValues!.coolSetpoint, Number(this.Thermostat.TemperatureDisplayUnits), this.platform.config.options?.convertUnits)
     }
     this.Thermostat.Service.updateCharacteristic(this.hap.Characteristic.TargetTemperature, this.Thermostat.TargetTemperature)
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat' && this.device.deviceModel === 'T9-T10') {
@@ -994,23 +994,38 @@ export class Thermostats extends deviceBase {
     if (this.device.settings?.fan && !this.device.thermostat?.hide_fan) {
       this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} TargetFanState: ${this.Fan?.TargetFanState}, Active: ${this.Fan?.Active}`)
 
-      if (this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO) {
+      const fanModeMapping = this.device.thermostat?.fan_mode_mapping
+      const autoMode = fanModeMapping?.auto_mode ?? 'Auto'
+      const onMode = fanModeMapping?.on_mode ?? 'On'
+      const offMode = fanModeMapping?.off_mode ?? 'Circulate'
+
+      if (
+        this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO
+        && this.Fan?.Active === this.hap.Characteristic.Active.INACTIVE
+      ) {
         payload = {
-          mode: 'Auto',
+          mode: autoMode,
+        }
+      } else if (
+        this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.AUTO
+        && this.Fan?.Active === this.hap.Characteristic.Active.ACTIVE
+      ) {
+        payload = {
+          mode: onMode,
         }
       } else if (
         this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.MANUAL
         && this.Fan?.Active === this.hap.Characteristic.Active.ACTIVE
       ) {
         payload = {
-          mode: 'On',
+          mode: onMode,
         }
       } else if (
         this.Fan?.TargetFanState === this.hap.Characteristic.TargetFanState.MANUAL
         && this.Fan?.Active === this.hap.Characteristic.Active.INACTIVE
       ) {
         payload = {
-          mode: 'Circulate',
+          mode: offMode,
         }
       }
 
