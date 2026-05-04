@@ -138,6 +138,72 @@
                         "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID);"
                       }
                     },
+                    "fan_mode_mapping": {
+                      "title": "Fan Mode Mapping",
+                      "type": "object",
+                      "properties": {
+                        "auto_mode": {
+                          "title": "Auto Mode",
+                          "type": "string",
+                          "default": "Auto",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        },
+                        "on_mode": {
+                          "title": "Manual/Active Mode",
+                          "type": "string",
+                          "default": "On",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        },
+                        "off_mode": {
+                          "title": "Manual/Inactive Mode",
+                          "type": "string",
+                          "default": "Circulate",
+                          "oneOf": [
+                            {
+                              "title": "Auto",
+                              "enum": ["Auto"]
+                            },
+                            {
+                              "title": "On",
+                              "enum": ["On"]
+                            },
+                            {
+                              "title": "Circulate",
+                              "enum": ["Circulate"]
+                            }
+                          ]
+                        }
+                      },
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'Thermostat' && model.options.devices[arrayIndices].deviceID && !model.options.devices[arrayIndices].thermostat?.hide_fan);"
+                      }
+                    },
                     "hide_humidity": {
                       "title": "Hide Thermostat Humidity Service",
                       "type": "boolean",
@@ -495,6 +561,26 @@
             "title": "Allow Invalid Characters",
             "type": "boolean",
             "description": "If true, invalid characters will be allowed in the device name."
+          },
+          "convertUnits": {
+            "title": "Temperature Unit Override",
+            "type": "string",
+            "default": "",
+            "description": "Override automatic API unit handling when temperatures are reported with the wrong unit.",
+            "oneOf": [
+              {
+                "title": "Automatic",
+                "enum": [""]
+              },
+              {
+                "title": "Force Fahrenheit Input",
+                "enum": ["fahrenheit"]
+              },
+              {
+                "title": "Force Celsius Input",
+                "enum": ["celsius"]
+              }
+            ]
           }
         },
         "required": ["logging"]
@@ -540,6 +626,17 @@
             "options.devices[].deviceModel",
             "options.devices[].thermostat.show_auto",
             "options.devices[].thermostat.hide_fan",
+            {
+              "key": "options.devices[].thermostat.fan_mode_mapping",
+              "type": "fieldset",
+              "expandable": true,
+              "expanded": false,
+              "items": [
+                "options.devices[].thermostat.fan_mode_mapping.auto_mode",
+                "options.devices[].thermostat.fan_mode_mapping.on_mode",
+                "options.devices[].thermostat.fan_mode_mapping.off_mode"
+              ]
+            },
             "options.devices[].thermostat.hide_humidity",
             "options.devices[].thermostat.thermostatSetpointStatus",
             "options.devices[].leaksensor.hide_leak",
@@ -616,7 +713,8 @@
           "description": "<em class='primary-text'>Specifies the interval, in seconds, between pushes to the Resideo API.</em>"
         },
         "options.logging",
-        "options.allowInvalidCharacters"
+        "options.allowInvalidCharacters",
+        "options.convertUnits"
       ]
     }
   ]

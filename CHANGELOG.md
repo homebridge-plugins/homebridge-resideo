@@ -1,23 +1,12 @@
-## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/compare/tag/v3.1.0) (2026-05-04)
+## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0) (2026-05-04)
 
 ### Enhancements
-- Homebridge engine requirement updated to `^2.0.0`.
-- Node.js engine requirement updated to `^22 || ^24`.
-- Platform source files renamed to `Platform.HAP.ts` and `Platform.Matter.ts`.
-- Added Homebridge Matter platform support path via `ResideoMatterPlatform`.
-- Refactored API requests to use a shared native Node HTTP(S) client.
-- Updated runtime dependency versions for plugin UI utilities and RxJS.
-
-### Dependencies
-- Updated development dependencies to current major releases (`@antfu/eslint-config`, `@types/node`, `@vitest/coverage-v8`, `eslint`, `homebridge-config-ui-x`, `shx`, `typedoc`, `typescript`, `vitest`).
+- Added fan mode mapping configuration for simplified HomeKit fan control and Siri-friendly fan behavior in thermostats ([#880](https://github.com/homebridge-plugins/homebridge-resideo/pull/880)).
+- Added a `convertUnits` configuration option to override temperature unit conversion when the Resideo API reports mismatched units ([#881](https://github.com/homebridge-plugins/homebridge-resideo/pull/881)).
+- Enabled switching the thermostat fan between `Auto` and `On` while HomeKit fan target state remains `AUTO` ([#886](https://github.com/homebridge-plugins/homebridge-resideo/pull/886)).
 
 ### Bug Fixes
-- Updated device and platform request flows to use the new shared HTTP client consistently.
-- Updated platform tests to mock the new HTTP client interface.
-- Applied naming and constructor-call cleanups to satisfy current TypeScript/lint diagnostics.
-
-### Documentation
-- Updated development and repository instructions for current project workflows.
+- Fixed current temperature conversion so Fahrenheit readings from the Resideo API are converted correctly when HomeKit is using Celsius ([#882](https://github.com/homebridge-plugins/homebridge-resideo/pull/882)).
 
 **Full Changelog**: https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0
 

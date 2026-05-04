@@ -55,6 +55,7 @@ export interface options {
   preferMatter?: boolean
   enableMatter?: boolean
   allowInvalidCharacters?: boolean
+  convertUnits?: ConvertUnitsOption
   logging?: string
   maxRetries?: number
   delayBetweenRetries?: number
@@ -86,11 +87,22 @@ export interface devicesConfig extends resideoDevice {
 export interface thermostat {
   show_auto?: boolean
   hide_fan?: boolean
+  fan_mode_mapping?: fanModeMapping
   hide_humidity?: boolean
   thermostatSetpointStatus?: string
   statefulStatus?: boolean
   roomsensor?: roomsensor
   roompriority?: roompriority
+}
+
+export type ConvertUnitsOption = '' | 'fahrenheit' | 'celsius'
+
+export type ResideoFanMode = 'Auto' | 'On' | 'Circulate'
+
+export interface fanModeMapping {
+  auto_mode?: ResideoFanMode
+  on_mode?: ResideoFanMode
+  off_mode?: ResideoFanMode
 }
 
 export interface leaksensor {
