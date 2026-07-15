@@ -7,6 +7,14 @@ import type { API, HAP, Logging, PlatformAccessory } from 'homebridge'
 import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { devicesConfig, location, resideoDevice, ResideoPlatformConfig, sensorAccessory, T9groups } from '../settings.js'
 
+// Devices keep their controlling class instance on the accessory itself,
+// the same pattern as the other plugins in this org
+declare module 'homebridge' {
+  interface PlatformAccessory {
+    control?: deviceBase
+  }
+}
+
 export abstract class deviceBase {
   public readonly api: API
   public readonly log: Logging

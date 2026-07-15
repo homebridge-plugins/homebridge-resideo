@@ -423,7 +423,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.deviceID = device.deviceID
         existingAccessory.context.model = device.deviceModel
         this.api.updatePlatformAccessories([existingAccessory])
-        new Thermostats(this, existingAccessory, location, device)
+        existingAccessory.control = new Thermostats(this, existingAccessory, location, device)
         this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -441,7 +441,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       accessory.context.device = device
       accessory.context.deviceID = device.deviceID
       accessory.context.model = device.deviceModel
-      new Thermostats(this, accessory, location, device)
+      accessory.control = new Thermostats(this, accessory, location, device)
       this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`)
       this.externalOrPlatform(device, accessory)
       this.accessories.push(accessory)
@@ -464,7 +464,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.model = device.deviceClass
         this.leaksensorFirmwareExistingAccessory(device, existingAccessory)
         this.api.updatePlatformAccessories([existingAccessory])
-        new LeakSensor(this, existingAccessory, location, device)
+        existingAccessory.control = new LeakSensor(this, existingAccessory, location, device)
         this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -482,7 +482,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       accessory.context.deviceID = device.deviceID
       accessory.context.model = device.deviceClass
       this.leaksensorFirmwareNewAccessory(device, accessory)
-      new LeakSensor(this, accessory, location, device)
+      accessory.control = new LeakSensor(this, accessory, location, device)
       this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`)
       this.externalOrPlatform(device, accessory)
       this.accessories.push(accessory)
@@ -506,7 +506,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.model = device.deviceClass
         this.valveFirmwareExistingAccessory(device, existingAccessory)
         this.api.updatePlatformAccessories([existingAccessory])
-        new Valve(this, existingAccessory, location, device)
+        existingAccessory.control = new Valve(this, existingAccessory, location, device)
         this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${existingAccessory.UUID})`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -524,7 +524,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       accessory.context.deviceID = device.deviceID
       accessory.context.model = device.deviceClass
       this.valveFirmwareNewAccessory(device, accessory)
-      new Valve(this, accessory, location, device)
+      accessory.control = new Valve(this, accessory, location, device)
       this.debugLog(`${device.deviceClass} uuid: ${device.deviceID}-${device.deviceClass} (${accessory.UUID})`)
       this.externalOrPlatform(device, accessory)
       this.accessories.push(accessory)
@@ -547,7 +547,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.model = sensorAccessory.accessoryAttribute.model
         this.roomsensorFirmwareExistingAccessory(existingAccessory, sensorAccessory)
         this.api.updatePlatformAccessories([existingAccessory])
-        new RoomSensors(this, existingAccessory, location, device, sensorAccessory, group)
+        existingAccessory.control = new RoomSensors(this, existingAccessory, location, device, sensorAccessory, group)
         this.debugLog(`${sensorAccessory.accessoryAttribute.type} uuid: ${sensorAccessory.accessoryAttribute.type}-${sensorAccessory.accessoryId}-RoomSensor, (${existingAccessory.UUID})`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -564,7 +564,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       accessory.context.deviceID = sensorAccessory.accessoryAttribute.serialNumber
       accessory.context.model = sensorAccessory.accessoryAttribute.model
       this.roomsensorFirmwareNewAccessory(accessory, sensorAccessory)
-      new RoomSensors(this, accessory, location, device, sensorAccessory, group)
+      accessory.control = new RoomSensors(this, accessory, location, device, sensorAccessory, group)
       this.debugLog(`${sensorAccessory.accessoryAttribute.type} uuid: ${sensorAccessory.accessoryAttribute.type}-${sensorAccessory.accessoryId}-RoomSensor, (${accessory.UUID})`)
       this.externalOrPlatform(device, accessory)
       this.accessories.push(accessory)
@@ -587,7 +587,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.model = sensorAccessory.accessoryAttribute.model
         this.roomsensorFirmwareExistingAccessory(existingAccessory, sensorAccessory)
         this.api.updatePlatformAccessories([existingAccessory])
-        new RoomSensorThermostat(this, existingAccessory, location, device, sensorAccessory, group)
+        existingAccessory.control = new RoomSensorThermostat(this, existingAccessory, location, device, sensorAccessory, group)
         this.debugLog(`${sensorAccessory.accessoryAttribute.type} Thermostat uuid: ${sensorAccessory.accessoryAttribute.type}-${sensorAccessory.accessoryId}-RoomSensorThermostat, (${existingAccessory.UUID})`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -604,7 +604,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       accessory.context.deviceID = sensorAccessory.accessoryAttribute.serialNumber
       accessory.context.model = sensorAccessory.accessoryAttribute.model
       this.roomsensorFirmwareNewAccessory(accessory, sensorAccessory)
-      new RoomSensorThermostat(this, accessory, location, device, sensorAccessory, group)
+      accessory.control = new RoomSensorThermostat(this, accessory, location, device, sensorAccessory, group)
       this.debugLog(`${sensorAccessory.accessoryAttribute.type} Thermostat uuid: ${sensorAccessory.accessoryAttribute.name}-${sensorAccessory.accessoryAttribute.type}-${sensorAccessory.accessoryId}-RoomSensorThermostat, (${accessory.UUID})`)
       this.externalOrPlatform(device, accessory)
       this.accessories.push(accessory)
