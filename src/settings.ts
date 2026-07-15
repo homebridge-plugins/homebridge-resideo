@@ -17,22 +17,22 @@ export const PLUGIN_NAME = '@homebridge-plugins/homebridge-resideo'
 /**
  * This is the main url used to access Resideo API
  */
-export const AuthorizeURL = 'https://api.honeywell.com/oauth2/authorize?'
+export const AuthorizeURL = 'https://api.honeywellhome.com/oauth2/authorize?'
 
 /**
  * This is the main url used to access Resideo API
  */
-export const TokenURL = 'https://api.honeywell.com/oauth2/token'
+export const TokenURL = 'https://api.honeywellhome.com/oauth2/token'
 
 /**
  * This is the main url used to access Resideo API
  */
-export const LocationURL = 'https://api.honeywell.com/v2/locations'
+export const LocationURL = 'https://api.honeywellhome.com/v2/locations'
 
 /**
  * This is the main url used to access Resideo API
  */
-export const DeviceURL = 'https://api.honeywell.com/v2/devices'
+export const DeviceURL = 'https://api.honeywellhome.com/v2/devices'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD'
 

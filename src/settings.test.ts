@@ -12,19 +12,19 @@ describe('settings', () => {
   })
 
   it('should have correct AuthorizeURL', () => {
-    expect(settings.AuthorizeURL).toBe('https://api.honeywell.com/oauth2/authorize?')
+    expect(settings.AuthorizeURL).toBe('https://api.honeywellhome.com/oauth2/authorize?')
   })
 
   it('should have correct TokenURL', () => {
-    expect(settings.TokenURL).toBe('https://api.honeywell.com/oauth2/token')
+    expect(settings.TokenURL).toBe('https://api.honeywellhome.com/oauth2/token')
   })
 
   it('should have correct LocationURL', () => {
-    expect(settings.LocationURL).toBe('https://api.honeywell.com/v2/locations')
+    expect(settings.LocationURL).toBe('https://api.honeywellhome.com/v2/locations')
   })
 
   it('should have correct DeviceURL', () => {
-    expect(settings.DeviceURL).toBe('https://api.honeywell.com/v2/devices')
+    expect(settings.DeviceURL).toBe('https://api.honeywellhome.com/v2/devices')
   })
 
   it('should have correct HttpMethod types', () => {
