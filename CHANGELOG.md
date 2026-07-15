@@ -1,3 +1,9 @@
+## v3.1.2 (Pending Release)
+
+### Changed
+
+- chore(github): update the setup-node action to v7
+
 ## v3.1.1 (2026-07-15)
 
 ### Changed
