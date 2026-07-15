@@ -18,6 +18,20 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
  */
 export class ResideoMatterPlatform extends ResideoPlatform {
   /**
+   * Matter's BridgedDeviceBasicInformation.NodeLabel is constrained to 32 characters.
+   * Homebridge sets the nodeLabel from the accessory displayName, so longer names make
+   * the whole endpoint fail to register with "Behaviors have errors".
+   */
+  private clampMatterDisplayName(displayName: string): string {
+    if (displayName.length <= 32) {
+      return displayName
+    }
+    const clamped = displayName.slice(0, 32).trim()
+    this.debugLog(`Display name "${displayName}" exceeds Matter's 32 character limit, using "${clamped}"`)
+    return clamped
+  }
+
+  /**
    * Map of cached Matter accessories restored from disk at startup.
    * Keyed by UUID so duplicates are avoided on re-launch.
    */
@@ -118,7 +132,7 @@ export class ResideoMatterPlatform extends ResideoPlatform {
           }
 
           const uuid = matterApi.uuid.generate(`${device.deviceID}-${device.deviceClass}`)
-          const displayName = device.configDeviceName ?? device.userDefinedDeviceName ?? `${device.deviceClass} ${device.deviceID}`
+          const displayName = this.clampMatterDisplayName(device.configDeviceName ?? device.userDefinedDeviceName ?? `${device.deviceClass} ${device.deviceID}`)
 
           const existingAccessory = this.matterAccessories.get(uuid)
           if (existingAccessory) {
