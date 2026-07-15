@@ -157,3 +157,4 @@ dist
 
 persist/
 .DS_Store
+.idea

@@ -3,6 +3,7 @@
 ### Changed
 
 - chore(deps): update dependencies
+- chore: add .idea to .gitignore
 
 ## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0) (2026-05-04)
 
