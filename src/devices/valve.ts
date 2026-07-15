@@ -89,10 +89,15 @@ export class Valve extends deviceBase {
   }
 
   async parseStatus(device: resideoDevice & devicesConfig): Promise<void> {
-    this.Valve.Active = device.isAlive ? this.hap.Characteristic.Active.ACTIVE : this.hap.Characteristic.Active.INACTIVE
+    // Active is the valve's own open/closed state, which is what setActive
+    // pushes back to the API. Reading it from isAlive (the device's online
+    // status) reported every reachable valve as open and snapped the control
+    // back after closing it (#785).
+    const isOpen = device.actuatorValve.valveStatus === 'Open'
+    this.Valve.Active = isOpen ? this.hap.Characteristic.Active.ACTIVE : this.hap.Characteristic.Active.INACTIVE
     this.accessory.context.Active = this.Valve.Active
 
-    this.Valve.InUse = device.actuatorValve.valveStatus === 'Open' ? this.hap.Characteristic.InUse.IN_USE : this.hap.Characteristic.InUse.NOT_IN_USE
+    this.Valve.InUse = isOpen ? this.hap.Characteristic.InUse.IN_USE : this.hap.Characteristic.InUse.NOT_IN_USE
     if (this.Valve.InUse !== this.accessory.context.InUse) {
       this.successLog(`${this.device.deviceClass} ${this.accessory.displayName} (refreshStatus) device: ${JSON.stringify(device)}`)
       this.accessory.context.InUse = this.Valve.InUse

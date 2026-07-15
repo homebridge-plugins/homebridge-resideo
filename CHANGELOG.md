@@ -3,6 +3,7 @@
 ### Changed
 
 - chore(github): update the setup-node action to v7
+- fix: report the water shutoff valve state from the valve rather than its online status (#785) (@bsteinbach112)
 
 ## v3.1.1 (2026-07-15)
 
