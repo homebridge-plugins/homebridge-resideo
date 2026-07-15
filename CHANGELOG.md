@@ -2,6 +2,7 @@
 
 ### Changed
 
+- fix: use the updated honeywell api endpoints (#924) (@wesleydeland)
 - chore(deps): update dependencies
 - chore: add .idea to .gitignore
 - chore(github): align workflows, funding and issue templates with the other org plugins
