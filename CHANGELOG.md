@@ -1,9 +1,20 @@
-## v3.0.4 (Pending Release)
+## v3.1.1 (Pending Release)
 
 ### Changed
 
 - chore(deps): update dependencies
 - chore: add .idea to .gitignore
+- chore(github): align workflows, funding and issue templates with the other org plugins
+- chore: align npm publishing files with the other org plugins
+- chore: standardise the eslint setup with the other org plugins
+- refactor: store device instances on their accessories like the other org plugins
+- style: apply the standardised lint rules
+- chore: standardise the package scripts and publishing config
+- chore: update the plugin metadata for the new maintainer
+- chore: sync the package version with the released v3.1.0
+- docs: refresh the readme
+- docs: add claude and copilot instructions files
+- docs: use the standard org readme banner
 
 ## [3.1.0](https://github.com/homebridge-plugins/homebridge-resideo/compare/v3.0.2...v3.1.0) (2026-05-04)
 
