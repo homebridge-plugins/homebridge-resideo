@@ -4,10 +4,10 @@
 
 # Homebridge Resideo
 
-<a href="https://www.npmjs.com/package/homebridge-resideo"><img title="npm version" src="https://badgen.net/npm/v/homebridge-resideo?icon=npm&label" ></a>
-<a href="https://www.npmjs.com/package/homebridge-resideo"><img title="npm downloads" src="https://badgen.net/npm/dt/homebridge-resideo?label=downloads" ></a>
-<a href="https://discord.gg/8fpZA4S"><img title="discord-resideo" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
-<a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
+<a href="https://www.npmjs.com/package/homebridge-resideo"><img alt="badge" title="npm version" src="https://badgen.net/npm/v/homebridge-resideo?icon=npm&label" ></a>
+<a href="https://www.npmjs.com/package/homebridge-resideo"><img alt="badge" title="npm downloads" src="https://badgen.net/npm/dt/homebridge-resideo?label=downloads" ></a>
+<a href="https://discord.gg/8fpZA4S"><img alt="badge" title="discord-resideo" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
+<a href="https://paypal.me/donavanbecker"><img alt="badge" title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
 <p>The Homebridge <a href="https://resideo.com">Resideo</a>
 plugin allows you to access your Resideo Device(s) from HomeKit with
@@ -31,7 +31,7 @@ plugin allows you to access your Resideo Device(s) from HomeKit with
 
 <p align="center">
 
-<img src="https://user-images.githubusercontent.com/9875439/192078620-6998511c-1c11-4e06-b7e1-475b22ef5180.png" width="300px">
+<img alt="Resideo developer portal app setup" src="https://user-images.githubusercontent.com/9875439/192078620-6998511c-1c11-4e06-b7e1-475b22ef5180.png" width="300px">
 
 </p>
 
@@ -40,7 +40,7 @@ plugin allows you to access your Resideo Device(s) from HomeKit with
 
 <p align="center">
 
-<img src="https://user-images.githubusercontent.com/9875439/192078614-e568d121-e0e4-4123-bdda-4238e8a6e601.png" width="300px">
+<img alt="Resideo account linking" src="https://user-images.githubusercontent.com/9875439/192078614-e568d121-e0e4-4123-bdda-4238e8a6e601.png" width="300px">
 
 </p>
 

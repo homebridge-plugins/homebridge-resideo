@@ -105,4 +105,3 @@ export function createPlatformProxy(HAPPlatform: any, MatterPlatform: any): any 
     }
   }
 }
-
