@@ -21,32 +21,18 @@ Homebridge plugin to integrate Resideo (Honeywell Home) devices into HomeKit
   - requires a (free) Resideo developer account to work - this is separate from the Resideo account you use in the Resideo app
   - connects to the Resideo cloud to discover and control your devices
 
+### Prerequisites
+
+- To use this plugin, you will need to already have:
+  - [Node](https://nodejs.org): latest version of `v22` or `v24` - any other major version is not supported.
+  - [Homebridge](https://homebridge.io): `v2` - refer to link for more information and installation instructions.
+
 ### Setup
 
-- Installation
-  - Search for "Resideo" on the plugin screen of the [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x) and click **Install**.
-- Configuration
-  1. Login or create an account at the [Resideo developer portal](https://developer.honeywellhome.com/user).
-  2. Click **Create New App**, give your application a name, and copy the hostname shown in the plugin settings intro into the **Callback URL** field.
-
-<p align="center">
-
-<img alt="Resideo developer portal app setup" src="https://user-images.githubusercontent.com/9875439/192078620-6998511c-1c11-4e06-b7e1-475b22ef5180.png" width="300px">
-
-</p>
-
-  3. Enter the generated consumer key and secret into the plugin settings and click **Link Account**.
-
-<p align="center">
-
-<img alt="Resideo account linking" src="https://user-images.githubusercontent.com/9875439/192078614-e568d121-e0e4-4123-bdda-4238e8a6e601.png" width="300px">
-
-</p>
-
-  4. Login to your Resideo account, click **Allow**, select your devices, and click **Connect**.
-     - Selecting all devices is recommended - you can hide devices you don't want in the Home app later, by device ID.
-  5. Click **Save** and restart Homebridge.
-     - If you plan to run this plugin in a child bridge, configure that before restarting, and remember to add the child bridge to the Home app.
+- [Installation](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Installation)
+- [Configuration](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Configuration)
+- [Beta Version](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Beta-Version)
+- [Node Version](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Node-Version)
 
 ### Supported Devices
 
@@ -63,6 +49,7 @@ Homebridge plugin to integrate Resideo (Honeywell Home) devices into HomeKit
 
 ### Help/About
 
+- [Common Errors](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Common-Errors)
 - [Support Request](https://github.com/homebridge-plugins/homebridge-resideo/issues/new/choose)
 - [Changelog](https://github.com/homebridge-plugins/homebridge-resideo/blob/latest/CHANGELOG.md)
 - [About Me](https://github.com/sponsors/bwp91)
