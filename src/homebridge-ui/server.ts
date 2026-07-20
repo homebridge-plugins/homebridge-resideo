@@ -7,6 +7,8 @@ import util from 'node:util'
 /* eslint-disable no-console */
 import { HomebridgePluginUiServer } from '@homebridge/plugin-ui-utils'
 
+import { AuthorizeURL, TokenURL } from '../settings.js'
+
 const exec = util.promisify(execCb)
 
 interface CustomRequestResponse {
@@ -34,7 +36,7 @@ export class PluginUiServer extends HomebridgePluginUiServer {
               this.secret = query.get('secret') as string
               this.hostname = query.get('host') as string
               const redirectUrl = `http://${this.hostname}:8585/auth`
-              const authUrl = `https://api.honeywell.com/oauth2/authorize?response_type=code&appSelect=1&redirect_uri=${encodeURI(redirectUrl)}&client_id=${query.get('key')}`
+              const authUrl = `${AuthorizeURL}response_type=code&appSelect=1&redirect_uri=${encodeURI(redirectUrl)}&client_id=${encodeURIComponent(this.key)}`
               res.end(`<script>window.location.replace('${authUrl}');</script>`)
               break
             }
@@ -52,7 +54,7 @@ export class PluginUiServer extends HomebridgePluginUiServer {
                 curlString += `code=${code}&`
                 curlString += `redirect_uri=${encodeURI(`http://${this.hostname}:8585/auth`)}`
                 curlString += '" '
-                curlString += '"https://api.honeywell.com/oauth2/token"'
+                curlString += `"${TokenURL}"`
                 try {
                   const { stdout } = await exec(curlString)
                   const response = JSON.parse(stdout)
