@@ -1,19 +1,30 @@
 import { Buffer } from 'node:buffer'
-import { exec as execCb } from 'node:child_process'
 import fs from 'node:fs'
 import http from 'node:http'
-import util from 'node:util'
 
 /* eslint-disable no-console */
 import { HomebridgePluginUiServer } from '@homebridge/plugin-ui-utils'
 
 import { AuthorizeURL, TokenURL } from '../settings.js'
 
-const exec = util.promisify(execCb)
-
 interface CustomRequestResponse {
   status: string
   data?: any
+}
+
+/**
+ * Escape text that is about to be written into the setup page.
+ *
+ * The failure messages come from Resideo, so they are not ours to trust with
+ * raw HTML.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 export class PluginUiServer extends HomebridgePluginUiServer {
@@ -44,20 +55,33 @@ export class PluginUiServer extends HomebridgePluginUiServer {
               if (query.get('code')) {
                 const code = query.get('code') as string
                 const auth = Buffer.from(`${this.key}:${this.secret}`).toString('base64')
-                let curlString = ''
-                curlString += 'curl -X POST '
-                curlString += `--header "Authorization: Basic ${auth}" `
-                curlString += '--header "Accept: application/json" '
-                curlString += '--header "Content-Type: application/x-www-form-urlencoded" '
-                curlString += '-d "'
-                curlString += 'grant_type=authorization_code&'
-                curlString += `code=${code}&`
-                curlString += `redirect_uri=${encodeURI(`http://${this.hostname}:8585/auth`)}`
-                curlString += '" '
-                curlString += `"${TokenURL}"`
                 try {
-                  const { stdout } = await exec(curlString)
-                  const response = JSON.parse(stdout)
+                  // Exchanged with fetch rather than by shelling out to curl:
+                  // curl is not present on every install, it validates against
+                  // the system CA store rather than the one Node ships, and
+                  // building a shell command by hand means anything arriving in
+                  // the query string ends up inside that command.
+                  const tokenResponse = await fetch(TokenURL, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Basic ${auth}`,
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                      grant_type: 'authorization_code',
+                      code,
+                      redirect_uri: `http://${this.hostname}:8585/auth`,
+                    }),
+                  })
+
+                  const response = await tokenResponse.json() as {
+                    access_token?: string
+                    refresh_token?: string
+                    error?: string
+                    error_description?: string
+                  }
+
                   if (response.access_token) {
                     this.pushEvent('creds-received', {
                       key: this.key,
@@ -67,10 +91,15 @@ export class PluginUiServer extends HomebridgePluginUiServer {
                     })
                     res.end('Success. You can close this window now.')
                   } else {
-                    res.end('oops.')
+                    // Report only what Resideo said went wrong. The request
+                    // carries the consumer secret, so the request itself must
+                    // never be echoed back to the page.
+                    const reason = response.error_description ?? response.error ?? `unexpected response (HTTP ${tokenResponse.status})`
+                    res.end(`<strong>Could not get a token:</strong><br>${escapeHtml(reason)}<br><br>Close this window and start again`)
                   }
                 } catch (err) {
-                  res.end(`<strong>An error occurred:</strong><br>${JSON.stringify(err)}<br><br>Close this window and start again`)
+                  const reason = err instanceof Error ? err.message : String(err)
+                  res.end(`<strong>An error occurred:</strong><br>${escapeHtml(reason)}<br><br>Close this window and start again`)
                 }
               } else {
                 res.end('<strong>An error occurred:</strong><br>no code received<br><br>Close this window and start again')

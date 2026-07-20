@@ -3,6 +3,7 @@
 ### Changed
 
 - fix(ui): use the working resideo api host for login, so the setup flow stops failing on an expired certificate (#927) (@cowboydaks) (@carlosfranceschi)
+- fix(ui): exchange the login code with fetch instead of shelling out to curl
 
 ## v3.1.3 (2026-07-20)
 
