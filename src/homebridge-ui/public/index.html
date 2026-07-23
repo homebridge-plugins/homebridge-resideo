@@ -7,8 +7,13 @@
    <p class="lead text-center">Thank you for installing <strong>homebridge-resideo</strong></p>
    <p class="lead text-center">Before continuing:</p>
    <ol>
-      <li class="mb-3">Login / create an account at <a href="https://developer.honeywellhome.com/user" target="_blank"
-            rel="noreferrer noopener">https://developer.honeywellhome.com/user</a>.</li>
+      <li class="mb-3">Login / create a <strong>developer</strong> account at <a
+            href="https://developer.honeywellhome.com/user" target="_blank"
+            rel="noreferrer noopener">https://developer.honeywellhome.com/user</a>.
+         <br>
+         <small class="text-muted">This is a separate account from the one you use in the Honeywell Home / Resideo
+            app. It is only used to generate the key and secret below.</small>
+      </li>
       <li class="mb-3">Click <strong>Create New App</strong>.</li>
       <li class="mb-3">
          Give your application a name, and enter the 'Callback URL' exactly as it is displayed below.
@@ -62,6 +67,17 @@
    <div class="form-group">
       <label for="inputConsumerSecret">Consumer Secret <span class="text-danger">*</span></label>
       <input type="text" class="form-control" id="inputConsumerSecret">
+   </div>
+   <div class="alert alert-info">
+      <strong>Which account does the next window want?</strong>
+      <br>
+      Continuing opens a Honeywell/Resideo sign-in window. Sign in there with your
+      <strong>Honeywell Home / Resideo app</strong> account &mdash; the same email and password you use in the phone
+      app to see your thermostats. That is <em>not</em> the developer account you used above, and your browser may try
+      to autofill the wrong one.
+      <br>
+      <small>If that account will not sign in even though the password is right, use <strong>Forgot
+            password</strong> in that window and reset it &mdash; that has fixed it for others.</small>
    </div>
    <div class="form-group text-center">
       <button type="button" class="btn btn-primary" id="backToIntro">&larr;</button>

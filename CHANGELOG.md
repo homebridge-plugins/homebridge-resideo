@@ -1,3 +1,9 @@
+## v3.1.5 (Pending Release)
+
+### Changed
+
+- fix(ui): spell out that the sign-in window wants the resideo app account, not the developer account (#930) (@dash16)
+
 ## v3.1.4 (2026-07-20)
 
 ### Changed
