@@ -1,3 +1,9 @@
+## v3.2.0 (Pending Release)
+
+### Changed
+
+- feat(ui): add, remove and hide devices from the config via the devices tab
+
 ## v3.1.5 (2026-07-24)
 
 ### Changed
