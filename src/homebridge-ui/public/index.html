@@ -62,9 +62,7 @@
    <button type="button" class="btn btn-primary" id="menuSettings">
       Settings
    </button>
-   <button type="button" class="btn btn-primary" id="menuDevices">
-      Devices
-   </button>
+   <button type="button" class="btn btn-primary" id="menuDevices">My Devices</button>
    <button type="button" class="btn btn-primary mr-0" id="menuHome">
       Support
    </button>
@@ -167,66 +165,65 @@
       </table>
    </div>
 </div>
-<div id="pageSupport" class="mt-4" style="display: none;">
-   <p class="text-center lead">Thank you for using <strong>homebridge-resideo</strong></p>
-   <p class="text-center">The links below will take you to our GitHub wiki</p>
-   <h5>Setup</h5>
-   <ul>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki" target="_blank">Wiki Home</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Configuration"
-            target="_blank">Configuration</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Beta-Version" target="_blank">Beta
-            Version</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Node-Version" target="_blank">Node
-            Version</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Uninstallation"
-            target="_blank">Uninstallation</a>
-      </li>
-   </ul>
-   <h5>Features</h5>
-   <ul>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Supported-Devices" target="_blank">Supported
-            Devices</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Fan-Modes" target="_blank">Fan
-            Modes</a>
-      </li>
-   </ul>
-   <h5>Help/About</h5>
-   <ul>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/issues/new/choose" target="_blank">Support
-            Request</a>
-      </li>
-      <li>
-         <a href="https://github.com/homebridge-plugins/homebridge-resideo/blob/latest/CHANGELOG.md"
-            target="_blank">Changelog</a>
-      </li>
-      <li>
-         <a href="https://github.com/sponsors/donavanbecker" target="_blank">About Me</a>
-      </li>
-   </ul>
-   <h5>Disclaimer</h5>
-   <ul>
-      <li>
-         I am in no way affiliated with Resideo and this plugin is a personal project that I maintain in
-         my free time.
-      </li>
-      <li>
-         Use this plugin entirely at your own risk - please see licence for more information.
-      </li>
-   </ul>
+<div id="pageSupport" class="mt-4" style="display: none">
+  <p class="text-center lead">Thank you for using <strong>homebridge-resideo</strong></p>
+  <h5>Plugin Information</h5>
+<ul>
+  <li>This plugin allows you to view and control your <a href="https://www.resideo.com" target="_blank">Resideo</a> (Honeywell Home) devices within HomeKit. The plugin:</li>
+  <ul>
+    <li>requires a (free) Resideo developer account to work - this is separate from the Resideo account you use in the Resideo app</li>
+    <li>connects to the Resideo cloud to discover and control your devices</li>
+  </ul>
+</ul>
+  <h5>Prerequisites</h5>
+<ul>
+  <li>To use this plugin, you will need to already have:</li>
+  <ul>
+    <li><a href="https://nodejs.org" target="_blank">Node</a>: latest version of <code>v22</code> or <code>v24</code> - any other major version is not supported.</li>
+    <li><a href="https://homebridge.io" target="_blank">Homebridge</a>: <code>v2</code> - refer to link for more information and installation instructions.</li>
+  </ul>
+</ul>
+  <h5>Setup</h5>
+<ul>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Installation" target="_blank">Installation</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Configuration" target="_blank">Configuration</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Beta-Version" target="_blank">Beta Version</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Node-Version" target="_blank">Node Version</a></li>
+</ul>
+  <h5>Supported Devices</h5>
+<ul>
+  <li><a href="https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t10-pro-smart-thermostat-with-redlinkr-room-sensor-thx321wfs2001w-u/" target="_blank">T10 Thermostat</a> - already HomeKit certified</li>
+  <li><a href="https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t9-smart-thermostat-with-sensor-rcht9610wfsw2003-u/" target="_blank">T9 Thermostat</a> - already HomeKit certified</li>
+  <ul>
+    <li><a href="https://www.resideo.com/us/en/products/air/thermostat-accessories/t9-smart-sensor-rchtsensor-1pk-u/" target="_blank">T9 Smart Roomsensors</a></li>
+  </ul>
+  <li><a href="https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t6-pro-smart-thermostat-multi-stage-3-heat-2-cool-th6320wf2003-u/" target="_blank">T6 Thermostat</a> - already HomeKit certified</li>
+  <li><a href="https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t5-smart-thermostat-with-c-wire-adapter-rcht8612wf2005-u/" target="_blank">T5 Thermostat</a> - already HomeKit certified</li>
+  <li><a href="https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/the-round-smart-thermostat-rch9310wf5003-u/" target="_blank">Round Thermostat</a> - already HomeKit certified</li>
+  <li>Some Total Comfort Control thermostats</li>
+  <ul>
+    <li>Pushing commands may not be supported on some.</li>
+  </ul>
+  <li><a href="https://www.resideo.com/us/en/products/water/spot-leak-detection/wifi-water-leak-freeze-detector-rchw3610wf1001-u/" target="_blank">WiFi Water Leak &amp; Freeze Detector</a></li>
+  <li>Water Shutoff Valves</li>
+</ul>
+  <h5>Help/About</h5>
+<ul>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/wiki/Common-Errors" target="_blank">Common Errors</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/issues/new/choose" target="_blank">Support Request</a></li>
+  <li><a href="https://github.com/homebridge-plugins/homebridge-resideo/blob/latest/CHANGELOG.md" target="_blank">Changelog</a></li>
+  <li><a href="https://github.com/sponsors/bwp91" target="_blank">About Me</a></li>
+</ul>
+  <h5>Credits</h5>
+<ul>
+  <li>To <a href="https://github.com/donavanbecker" target="_blank">@donavanbecker</a>: the original creator and maintainer of this plugin.</li>
+  <li>To the creators/contributors of <a href="https://homebridge.io" target="_blank">Homebridge</a> who make this plugin possible.</li>
+</ul>
+  <h5>Disclaimer</h5>
+<ul>
+  <li>I am in no way affiliated with Resideo or Honeywell and this plugin is a personal project that I maintain in my free time.</li>
+  <li>Use this plugin entirely at your own risk - please see licence for more information.</li>
+</ul>
 </div>
 <script>
    ; (async () => {

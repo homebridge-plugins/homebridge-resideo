@@ -3,6 +3,7 @@
 ### Changed
 
 - feat(ui): add, remove and hide devices from the config via the devices tab
+- style(ui): standardise the custom ui layout and sync the support tab with the readme
 
 ## v3.1.5 (2026-07-24)
 
