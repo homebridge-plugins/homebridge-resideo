@@ -46,6 +46,7 @@
   "keywords": [
     "homebridge-plugin",
     "supports-matter",
+    "supports-hap",
     "homebridge-matter",
     "honeywell",
     "honeywell-home",

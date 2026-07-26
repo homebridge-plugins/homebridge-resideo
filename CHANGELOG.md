@@ -6,6 +6,7 @@
 - style(ui): standardise the custom ui layout and sync the support tab with the readme
 - feat(ui): add a remove all devices action to the my devices tab
 - fix(schema): declare required fields the standard way so the homebridge ui stops reporting a config validation failure
+- chore: declare the supports-hap transport keyword for the homebridge ui
 
 ## v3.1.5 (2026-07-24)
 
