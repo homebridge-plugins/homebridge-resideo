@@ -304,7 +304,6 @@
                           "title": "Room Sensor Thermostat Logging Level Override",
                           "description": "Overrides the plugin logging level for this room sensor thermostat only. None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard.",
                           "type": "string",
-                          "required": true,
                           "default": "",
                           "oneOf": [
                             {
@@ -390,7 +389,6 @@
                           "title": "Room Sensor Logging Level Override",
                           "description": "Overrides the plugin logging level for this room sensor only. None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard.",
                           "type": "string",
-                          "required": true,
                           "default": "",
                           "oneOf": [
                             {
@@ -495,7 +493,6 @@
                   "title": "Device Logging Level Override",
                   "description": "Overrides the plugin logging level for this device only. None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard.",
                   "type": "string",
-                  "required": true,
                   "default": "",
                   "oneOf": [
                     {
@@ -540,7 +537,6 @@
             "title": "Plugin Logging Level",
             "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard.",
             "type": "string",
-            "required": true,
             "default": "",
             "oneOf": [
               {
