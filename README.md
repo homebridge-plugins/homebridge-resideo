@@ -52,7 +52,6 @@ Homebridge plugin to integrate Resideo (Honeywell Home) devices into HomeKit
 - [Common Errors](https://github.com/homebridge-plugins/homebridge-resideo/wiki/Common-Errors)
 - [Support Request](https://github.com/homebridge-plugins/homebridge-resideo/issues/new/choose)
 - [Changelog](https://github.com/homebridge-plugins/homebridge-resideo/blob/latest/CHANGELOG.md)
-- [About Me](https://github.com/sponsors/bwp91)
 
 ### Credits
 
