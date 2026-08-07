@@ -420,6 +420,26 @@
                     }
                   }
                 },
+                "valve": {
+                  "title": "Shutoff Valve",
+                  "type": "object",
+                  "properties": {
+                    "valveType": {
+                      "title": "Valve Type",
+                      "type": "integer",
+                      "description": "Choose the icon HomeKit shows for this valve.",
+                      "oneOf": [
+                        { "title": "Generic Valve", "enum": [0] },
+                        { "title": "Irrigation", "enum": [1] },
+                        { "title": "Shower Head", "enum": [2] },
+                        { "title": "Water Faucet", "enum": [3] }
+                      ],
+                      "condition": {
+                        "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceClass === 'ShutoffValve' && model.options.devices[arrayIndices].deviceID);"
+                      }
+                    }
+                  }
+                },
                 "leaksensor": {
                   "title": "Leak Sensor",
                   "type": "object",
@@ -453,6 +473,26 @@
                   "description": "Retry after receiving a Resideo API Error.",
                   "condition": {
                     "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].deviceID);"
+                  }
+                },
+                "maxRetries": {
+                  "title": "Max Retries",
+                  "type": "integer",
+                  "minimum": 1,
+                  "placeholder": 1,
+                  "description": "How many times to try again after a Resideo API error.",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].retry && model.options.devices[arrayIndices].deviceID);"
+                  }
+                },
+                "delayBetweenRetries": {
+                  "title": "Delay Between Retries",
+                  "type": "integer",
+                  "minimum": 1,
+                  "placeholder": 5,
+                  "description": "How long to wait, in seconds, before trying again after a Resideo API error.",
+                  "condition": {
+                    "functionBody": "return (model.options && model.options.devices && !model.options.devices[arrayIndices].hide_device && model.options.devices[arrayIndices].retry && model.options.devices[arrayIndices].deviceID);"
                   }
                 },
                 "external": {
@@ -639,6 +679,7 @@
             },
             "options.devices[].thermostat.hide_humidity",
             "options.devices[].thermostat.thermostatSetpointStatus",
+            "options.devices[].valve.valveType",
             "options.devices[].leaksensor.hide_leak",
             "options.devices[].leaksensor.hide_temperature",
             "options.devices[].leaksensor.hide_humidity",
@@ -683,6 +724,8 @@
               ]
             },
             "options.devices[].retry",
+            "options.devices[].maxRetries",
+            "options.devices[].delayBetweenRetries",
             "options.devices[].firmware",
             "options.devices[].external",
             {

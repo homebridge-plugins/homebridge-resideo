@@ -266,9 +266,9 @@ export class RoomSensors extends deviceBase {
       const action = 'refreshStatus'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.SensorUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshStatus()
           })

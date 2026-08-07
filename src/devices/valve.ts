@@ -120,7 +120,7 @@ export class Valve extends deviceBase {
       const action = 'refreshStatus'
       if (this.device.retry) {
         if (action === 'refreshStatus') {
-          interval(5000)
+          interval(this.deviceDelayBetweenRetries)
             .pipe(skipWhile(() => this.valveUpdateInProgress), take(1))
             .subscribe(async () => {
               await this.refreshStatus()

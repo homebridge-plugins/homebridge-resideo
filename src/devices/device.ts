@@ -78,12 +78,16 @@ export abstract class deviceBase {
     this.devicePushRate = device.pushRate ?? this.platform.platformPushRate ?? 0.1
     const pushRate = device.pushRate ? 'Device Config' : this.platform.platformPushRate ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}, ${updateRate} updateRate: ${this.deviceUpdateRate}, ${pushRate} pushRate: ${this.devicePushRate}`)
-    // maxRetries
-    this.deviceMaxRetries = device.maxRetries ?? this.platform.platformMaxRetries ?? 5
+    // maxRetries. These two were parsed, stored and logged but read nowhere, so a
+    // setting the owner changed made no difference at all - every retry path was a
+    // hardcoded single attempt after five seconds. They are honoured now, and the
+    // defaults are what that hardcoded behaviour was, so nothing changes for
+    // anyone who has not set them.
+    this.deviceMaxRetries = device.maxRetries ?? this.platform.platformMaxRetries ?? 1
     const maxRetries = device.maxRetries ? 'Device Config' : this.platform.platformMaxRetries ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${maxRetries} maxRetries: ${this.deviceMaxRetries}`)
     // delayBetweenRetries
-    this.deviceDelayBetweenRetries = device.delayBetweenRetries ?? this.platform.platformDelayBetweenRetries ?? 3
+    this.deviceDelayBetweenRetries = device.delayBetweenRetries ?? this.platform.platformDelayBetweenRetries ?? 5
     this.deviceDelayBetweenRetries = this.deviceDelayBetweenRetries * 1000
     const delayBetweenRetries = device.delayBetweenRetries ? 'Device Config' : this.platform.platformDelayBetweenRetries ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${delayBetweenRetries} delayBetweenRetries: ${this.deviceDelayBetweenRetries}`)

@@ -289,32 +289,42 @@ export class Thermostats extends deviceBase {
       this.debugLog(`${device.deviceClass} ${accessory.displayName} Humidity Sensor Service Not Added`)
     }
 
-    // Initialize StatefulProgrammableSwitch property
-    accessory.context.StatefulProgrammableSwitch = accessory.context.StatefulProgrammableSwitch ?? {}
-    this.StatefulProgrammableSwitch = {
-      Name: accessory.context.StatefulProgrammableSwitch.Name ?? accessory.displayName,
-      Service: accessory.getService(this.hap.Service.StatefulProgrammableSwitch) ?? accessory.addService(this.hap.Service.StatefulProgrammableSwitch) as Service,
-      ProgrammableSwitchEvent: accessory.context.ProgrammableSwitchEvent ?? this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
-      ProgrammableSwitchOutputState: accessory.context.ProgrammableSwitchOutputState ?? 0,
+    // Initialize StatefulProgrammableSwitch property. The `statefulStatus` option
+    // is offered in the settings but was read nowhere, so the switch was added to
+    // every thermostat whether the owner had asked for it or not.
+    if (device.thermostat?.statefulStatus) {
+      accessory.context.StatefulProgrammableSwitch = accessory.context.StatefulProgrammableSwitch ?? {}
+      this.StatefulProgrammableSwitch = {
+        Name: accessory.context.StatefulProgrammableSwitch.Name ?? accessory.displayName,
+        Service: accessory.getService(this.hap.Service.StatefulProgrammableSwitch) ?? accessory.addService(this.hap.Service.StatefulProgrammableSwitch) as Service,
+        ProgrammableSwitchEvent: accessory.context.ProgrammableSwitchEvent ?? this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS,
+        ProgrammableSwitchOutputState: accessory.context.ProgrammableSwitchOutputState ?? 0,
+      }
+      accessory.context.StatefulProgrammableSwitch = this.StatefulProgrammableSwitch as object
+
+      this.StatefulProgrammableSwitch.Service
+        .setCharacteristic(this.hap.Characteristic.Name, this.StatefulProgrammableSwitch.Name)
+        .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchEvent)
+        .setProps({
+          validValues: [this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS],
+        })
+        .onGet(() => {
+          return this.StatefulProgrammableSwitch!.ProgrammableSwitchEvent
+        })
+
+      this.StatefulProgrammableSwitch.Service
+        .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchOutputState)
+        .onGet(() => {
+          return this.StatefulProgrammableSwitch!.ProgrammableSwitchOutputState
+        })
+        .onSet(this.handleProgrammableSwitchOutputStateSet.bind(this))
+    } else {
+      const existingStatefulService = accessory.getService(this.hap.Service.StatefulProgrammableSwitch)
+      if (existingStatefulService) {
+        this.debugLog(`${device.deviceClass} ${accessory.displayName} Removing Stateful Programmable Switch Service`)
+        accessory.removeService(existingStatefulService)
+      }
     }
-    accessory.context.StatefulProgrammableSwitch = this.StatefulProgrammableSwitch as object
-
-    this.StatefulProgrammableSwitch.Service
-      .setCharacteristic(this.hap.Characteristic.Name, this.StatefulProgrammableSwitch.Name)
-      .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchEvent)
-      .setProps({
-        validValues: [this.hap.Characteristic.ProgrammableSwitchEvent.SINGLE_PRESS],
-      })
-      .onGet(() => {
-        return this.StatefulProgrammableSwitch!.ProgrammableSwitchEvent
-      })
-
-    this.StatefulProgrammableSwitch.Service
-      .getCharacteristic(this.hap.Characteristic.ProgrammableSwitchOutputState)
-      .onGet(() => {
-        return this.StatefulProgrammableSwitch!.ProgrammableSwitchOutputState
-      })
-      .onSet(this.handleProgrammableSwitchOutputStateSet.bind(this))
 
     // Intial Refresh
     this.refreshStatus()
@@ -343,9 +353,9 @@ export class Thermostats extends deviceBase {
             const action = 'pushRoomChanges'
             if (this.device.retry) {
               // Refresh the status from the API
-              interval(5000)
+              interval(this.deviceDelayBetweenRetries)
                 .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-                .pipe(take(1))
+                .pipe(take(this.deviceMaxRetries))
                 .subscribe(async () => {
                   await this.pushRoomChanges()
                 })
@@ -356,9 +366,9 @@ export class Thermostats extends deviceBase {
           }
           this.roomUpdateInProgress = false
           // Refresh the status from the API
-          interval(5000)
+          interval(this.deviceDelayBetweenRetries)
             .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-            .pipe(take(1))
+            .pipe(take(this.deviceMaxRetries))
             .subscribe(async () => {
               await this.refreshStatus()
             })
@@ -378,9 +388,9 @@ export class Thermostats extends deviceBase {
           const action = 'pushChanges'
           if (this.device.retry) {
             // Refresh the status from the API
-            interval(5000)
+            interval(this.deviceDelayBetweenRetries)
               .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-              .pipe(take(1))
+              .pipe(take(this.deviceMaxRetries))
               .subscribe(async () => {
                 await this.pushChanges()
               })
@@ -393,7 +403,7 @@ export class Thermostats extends deviceBase {
         // Refresh the status from the API
         interval(15000)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshStatus()
           })
@@ -413,9 +423,9 @@ export class Thermostats extends deviceBase {
             const action = 'pushFanChanges'
             if (this.device.retry) {
               // Refresh the status from the API
-              interval(5000)
+              interval(this.deviceDelayBetweenRetries)
                 .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-                .pipe(take(1))
+                .pipe(take(this.deviceMaxRetries))
                 .subscribe(async () => {
                   await this.pushFanChanges()
                 })
@@ -426,9 +436,9 @@ export class Thermostats extends deviceBase {
           }
           this.fanUpdateInProgress = false
           // Refresh the status from the API
-          interval(5000)
+          interval(this.deviceDelayBetweenRetries)
             .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-            .pipe(take(1))
+            .pipe(take(this.deviceMaxRetries))
             .subscribe(async () => {
               await this.refreshStatus()
             })
@@ -548,9 +558,9 @@ export class Thermostats extends deviceBase {
       const action = 'refreshStatus'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshStatus()
           })
@@ -737,9 +747,9 @@ export class Thermostats extends deviceBase {
       const action = 'pushChanges'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.pushChanges()
           })

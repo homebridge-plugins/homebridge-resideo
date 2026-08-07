@@ -19,6 +19,7 @@
 - fix: send the room sensor's humidity to homekit, so the tile updates
 - fix: actually remove a service when its hide setting is turned on
 - fix: show the real firmware version on a t9 or t10, not the plugin's own version
+- fix: make the retry, stateful switch and valve type settings do what they say
 
 ## v3.2.0 (2026-07-27)
 

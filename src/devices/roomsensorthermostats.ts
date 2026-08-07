@@ -255,9 +255,9 @@ export class RoomSensorThermostat extends deviceBase {
             const action = 'refreshRoomPriority'
             if (this.device.retry) {
               // Refresh the status from the API
-              interval(5000)
+              interval(this.deviceDelayBetweenRetries)
                 .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-                .pipe(take(1))
+                .pipe(take(this.deviceMaxRetries))
                 .subscribe(async () => {
                   await this.refreshRoomPriority()
                 })
@@ -271,9 +271,9 @@ export class RoomSensorThermostat extends deviceBase {
             const action = 'pushRoomChanges'
             if (this.device.retry) {
               // Refresh the status from the API
-              interval(5000)
+              interval(this.deviceDelayBetweenRetries)
                 .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-                .pipe(take(1))
+                .pipe(take(this.deviceMaxRetries))
                 .subscribe(async () => {
                   await this.pushRoomChanges()
                 })
@@ -283,9 +283,9 @@ export class RoomSensorThermostat extends deviceBase {
           }
           this.roomUpdateInProgress = false
           // Refresh the status from the API
-          interval(5000)
+          interval(this.deviceDelayBetweenRetries)
             .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-            .pipe(take(1))
+            .pipe(take(this.deviceMaxRetries))
             .subscribe(async () => {
               await this.refreshStatus()
             })
@@ -305,9 +305,9 @@ export class RoomSensorThermostat extends deviceBase {
           const action = 'pushChanges'
           if (this.device.retry) {
             // Refresh the status from the API
-            interval(5000)
+            interval(this.deviceDelayBetweenRetries)
               .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-              .pipe(take(1))
+              .pipe(take(this.deviceMaxRetries))
               .subscribe(async () => {
                 await this.pushChanges()
               })
@@ -317,9 +317,9 @@ export class RoomSensorThermostat extends deviceBase {
         }
         this.thermostatUpdateInProgress = false
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshStatus()
           })
@@ -414,9 +414,9 @@ export class RoomSensorThermostat extends deviceBase {
       const action = 'refreshStatus'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshStatus()
           })
@@ -469,9 +469,9 @@ export class RoomSensorThermostat extends deviceBase {
       const action = 'refreshSensorStatus'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.refreshSensorStatus()
           })
@@ -501,9 +501,9 @@ export class RoomSensorThermostat extends deviceBase {
         const action = 'refreshRoomPriority'
         if (this.device.retry) {
           // Refresh the status from the API
-          interval(5000)
+          interval(this.deviceDelayBetweenRetries)
             .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-            .pipe(take(1))
+            .pipe(take(this.deviceMaxRetries))
             .subscribe(async () => {
               await this.refreshRoomPriority()
             })
@@ -564,9 +564,9 @@ export class RoomSensorThermostat extends deviceBase {
           const action = 'pushRoomChanges'
           if (this.device.retry) {
             // Refresh the status from the API
-            interval(5000)
+            interval(this.deviceDelayBetweenRetries)
               .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-              .pipe(take(1))
+              .pipe(take(this.deviceMaxRetries))
               .subscribe(async () => {
                 await this.pushRoomChanges()
               })
@@ -626,9 +626,9 @@ export class RoomSensorThermostat extends deviceBase {
       const action = 'pushChanges'
       if (this.device.retry) {
         // Refresh the status from the API
-        interval(5000)
+        interval(this.deviceDelayBetweenRetries)
           .pipe(skipWhile(() => this.thermostatUpdateInProgress))
-          .pipe(take(1))
+          .pipe(take(this.deviceMaxRetries))
           .subscribe(async () => {
             await this.pushChanges()
           })
