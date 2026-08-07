@@ -188,10 +188,14 @@ export class RoomSensorThermostat extends deviceBase {
 
     // Initialize Humidity Sensor Service
     if (device.thermostat?.hide_humidity) {
-      if (this.HumiditySensor) {
+      // Look the service up on the accessory. This used to test `this.HumiditySensor`,
+      // which nothing has assigned yet at this point in the constructor, so the
+      // branch never ran: a service added before the option was turned on stayed
+      // in HomeKit for good, with no handlers behind it.
+      const existingHumiditySensorService = accessory.getService(this.hap.Service.HumiditySensor)
+      if (existingHumiditySensorService) {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Removing Humidity Sensor Service`)
-        this.HumiditySensor.Service = this.accessory.getService(this.hap.Service.HumiditySensor) as Service
-        accessory.removeService(this.HumiditySensor.Service)
+        accessory.removeService(existingHumiditySensorService)
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Humidity Sensor Service Not Found`)
       }

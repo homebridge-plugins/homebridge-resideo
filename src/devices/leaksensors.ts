@@ -84,10 +84,14 @@ export class LeakSensor extends deviceBase {
 
     // Initialize Leak Sensor Service
     if (device.leaksensor?.hide_leak) {
-      if (this.LeakSensor) {
+      // Look the service up on the accessory. This used to test `this.LeakSensor`,
+      // which nothing has assigned yet at this point in the constructor, so the
+      // branch never ran: a service added before the option was turned on stayed
+      // in HomeKit for good, with no handlers behind it.
+      const existingLeakSensorService = accessory.getService(this.hap.Service.LeakSensor)
+      if (existingLeakSensorService) {
         this.debugLog(`${device.deviceClass} ${accessory.displayName} Removing Leak Sensor Service`)
-        this.LeakSensor.Service = accessory.getService(this.hap.Service.LeakSensor) as Service
-        accessory.removeService(this.LeakSensor.Service)
+        accessory.removeService(existingLeakSensorService)
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Leak Sensor Service Not Found`)
       }
@@ -119,10 +123,14 @@ export class LeakSensor extends deviceBase {
 
     // Initialize Temperature Sensor Service
     if (device.leaksensor?.hide_temperature) {
-      if (this.TemperatureSensor) {
+      // Look the service up on the accessory. This used to test `this.TemperatureSensor`,
+      // which nothing has assigned yet at this point in the constructor, so the
+      // branch never ran: a service added before the option was turned on stayed
+      // in HomeKit for good, with no handlers behind it.
+      const existingTemperatureSensorService = accessory.getService(this.hap.Service.TemperatureSensor)
+      if (existingTemperatureSensorService) {
         this.debugLog(`${device.deviceClass} ${accessory.displayName} Removing Temperature Sensor Service`)
-        this.TemperatureSensor.Service = accessory.getService(this.hap.Service.TemperatureSensor) as Service
-        accessory.removeService(this.TemperatureSensor.Service)
+        accessory.removeService(existingTemperatureSensorService)
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Temperature Sensor Service Not Found`)
       }
@@ -152,10 +160,14 @@ export class LeakSensor extends deviceBase {
 
     // Initialize Humidity Sensor Service
     if (device.leaksensor?.hide_humidity) {
-      if (this.HumiditySensor) {
+      // Look the service up on the accessory. This used to test `this.HumiditySensor`,
+      // which nothing has assigned yet at this point in the constructor, so the
+      // branch never ran: a service added before the option was turned on stayed
+      // in HomeKit for good, with no handlers behind it.
+      const existingHumiditySensorService = accessory.getService(this.hap.Service.HumiditySensor)
+      if (existingHumiditySensorService) {
         this.debugLog(`${device.deviceClass} ${accessory.displayName} Removing Humidity Sensor Service`)
-        this.HumiditySensor.Service = accessory.getService(this.hap.Service.HumiditySensor) as Service
-        accessory.removeService(this.HumiditySensor.Service)
+        accessory.removeService(existingHumiditySensorService)
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Humidity Sensor Service Not Found`)
       }
