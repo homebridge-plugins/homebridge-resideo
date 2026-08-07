@@ -480,13 +480,18 @@ export class RoomSensorThermostat extends deviceBase {
   async refreshRoomPriority(): Promise<void> {
     if (this.device.thermostat?.roompriority?.deviceType === 'Thermostat') {
       try {
-        const roomPriorityStatus = (
+        // Keep the response. It used to be assigned to a local only, so
+        // `this.roomPriorityStatus` was never set and pushRoomChanges() threw on
+        // it every single time - room priority did not work at all on room sensor
+        // thermostats, and the error was reported as a generic push failure.
+        this.roomPriorityStatus = (
           await this.platform.httpClient.get(`${DeviceURL}/thermostats/${this.device.deviceID}/priority`, {
             params: {
               locationId: this.location.locationID,
             },
           })
         ).data
+        const roomPriorityStatus = this.roomPriorityStatus
         this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.device.deviceClass} ${this.accessory.displayName} (refreshRoomPriority) roomPriorityStatus: ${JSON.stringify(roomPriorityStatus)}`)
       } catch (e: any) {
         const action = 'refreshRoomPriority'
@@ -511,6 +516,10 @@ export class RoomSensorThermostat extends deviceBase {
    * Pushes the requested changes for Room Priority to the Resideo API
    */
   async pushRoomChanges(): Promise<void> {
+    if (!this.roomPriorityStatus?.currentPriority) {
+      this.debugLog(`${this.accessory.displayName} has no room priority to compare against, skipping the push`)
+      return
+    }
     this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.device.deviceClass} ${this.accessory.displayName} Room Priority,
      Current Room: ${JSON.stringify(this.roomPriorityStatus.currentPriority.selectedRooms)}, Changing Room: [${this.sensorAccessory?.accessoryId}]`)
     if (`[${this.sensorAccessory?.accessoryId}]` !== `[${this.roomPriorityStatus.currentPriority.selectedRooms}]`) {
