@@ -330,11 +330,11 @@ export class Thermostats extends deviceBase {
     this.refreshStatus()
 
     // Start an update interval
-    interval(this.deviceRefreshRate * 1000)
+    this.track(interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.thermostatUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()
-      })
+      }))
 
     // Watch for thermostat change events
     // We put in a debounce of 100ms so we don't make duplicate calls

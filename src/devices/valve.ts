@@ -58,11 +58,11 @@ export class Valve extends deviceBase {
 
     this.refreshStatus()
 
-    interval(this.deviceRefreshRate * 1000)
+    this.track(interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.valveUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()
-      })
+      }))
 
     this.doValveUpdate
       .pipe(

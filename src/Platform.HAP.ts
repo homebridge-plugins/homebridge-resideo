@@ -100,6 +100,17 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       return
     }
 
+    // Stop the token refresh and every device's polling on the way out. Without
+    // this the intervals kept calling the Resideo API while the bridge was tearing
+    // down, and held the process open until they were killed.
+    this.api.on('shutdown', () => {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval)
+        this.refreshInterval = undefined
+      }
+      this.accessories.forEach(accessory => accessory.control?.shutdown?.())
+    })
+
     this.api.on('didFinishLaunching', async () => {
       this.debugLog('Executed didFinishLaunching callback')
       await this.refreshAccessToken()

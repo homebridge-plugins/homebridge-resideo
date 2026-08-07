@@ -204,11 +204,11 @@ export class LeakSensor extends deviceBase {
     this.updateHomeKitCharacteristics()
 
     // Start an update interval
-    interval(this.deviceRefreshRate * 1000)
+    this.track(interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.SensorUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()
-      })
+      }))
   }
 
   /**

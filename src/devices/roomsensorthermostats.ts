@@ -231,12 +231,12 @@ export class RoomSensorThermostat extends deviceBase {
     this.updateHomeKitCharacteristics()
 
     // Start an update interval
-    interval(this.deviceRefreshRate * 1000)
+    this.track(interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.thermostatUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()
         await this.refreshSensorStatus()
-      })
+      }))
 
     // Watch for thermostat change events
     // We put in a debounce of 100ms so we don't make duplicate calls

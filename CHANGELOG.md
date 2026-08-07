@@ -21,6 +21,7 @@
 - fix: show the real firmware version on a t9 or t10, not the plugin's own version
 - fix: make the retry, stateful switch and valve type settings do what they say
 - fix: recover from a connection dropped mid-response instead of crashing the bridge
+- fix: stop the token refresh and device polling when homebridge shuts down
 
 ## v3.2.0 (2026-07-27)
 

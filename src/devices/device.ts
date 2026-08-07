@@ -3,6 +3,7 @@
  * device.ts: homebridge-resideo.
  */
 import type { API, HAP, Logging, PlatformAccessory } from 'homebridge'
+import type { Subscription } from 'rxjs'
 
 import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { devicesConfig, location, resideoDevice, ResideoPlatformConfig, sensorAccessory, T9groups } from '../settings.js'
@@ -16,6 +17,25 @@ declare module 'homebridge' {
 }
 
 export abstract class deviceBase {
+  /**
+   * Anything this device subscribed to. Homebridge emits 'shutdown' so a plugin
+   * can stop its own work; without this the polling intervals kept calling the
+   * Resideo API while the bridge was tearing down, and held the process open.
+   */
+  private readonly subscriptions: Subscription[] = []
+
+  /** Register a subscription so it is torn down on shutdown. */
+  protected track(subscription: Subscription): Subscription {
+    this.subscriptions.push(subscription)
+    return subscription
+  }
+
+  /** Stop everything this device started. Called by the platform on shutdown. */
+  public shutdown(): void {
+    this.subscriptions.forEach(s => s.unsubscribe())
+    this.subscriptions.length = 0
+  }
+
   public readonly api: API
   public readonly log: Logging
   public readonly config!: ResideoPlatformConfig
