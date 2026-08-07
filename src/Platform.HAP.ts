@@ -689,7 +689,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     } else {
       if (device.deviceModel.startsWith('T9')) {
         try {
-          accessory.context.firmwareRevision = await this.getSoftwareRevision(location.locationID, device)
+          accessory.context.firmwareRevision = await this.getSoftwareRevision(location, device)
         } catch (e: any) {
           this.action = 'Get T9 Firmware Version'
           this.apiError(e)
@@ -708,7 +708,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     } else {
       if (device.deviceModel.startsWith('T9')) {
         try {
-          existingAccessory.context.firmwareRevision = await this.getSoftwareRevision(location.locationID, device)
+          existingAccessory.context.firmwareRevision = await this.getSoftwareRevision(location, device)
         } catch (e: any) {
           this.action = 'Get T9 Firmware Version'
           this.apiError(e)
