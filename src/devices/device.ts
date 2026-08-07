@@ -286,6 +286,10 @@ export abstract class deviceBase {
   }
 
   async enablingDeviceLogging(): Promise<boolean> {
-    return this.deviceLogging.includes('debug') ?? this.deviceLogging === 'standard'
+    // `??` only falls through on null or undefined, and `.includes()` returns a
+    // boolean, so the right-hand side was unreachable. Setting the logging level
+    // to "standard" therefore silenced every device line, errors included - an
+    // owner with a misbehaving thermostat got nothing at all in the log.
+    return this.deviceLogging.includes('debug') || this.deviceLogging === 'standard'
   }
 }

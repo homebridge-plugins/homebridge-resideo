@@ -15,6 +15,7 @@
 - chore: exclude test files and the test config from the published package
 - fix: restore debug logging when the plugin runs in a child bridge
 - fix: make room priority work on room sensor thermostats
+- fix: keep showing device messages when the logging level is set to standard
 
 ## v3.2.0 (2026-07-27)
 
