@@ -16,6 +16,7 @@
 - fix: restore debug logging when the plugin runs in a child bridge
 - fix: make room priority work on room sensor thermostats
 - fix: keep showing device messages when the logging level is set to standard
+- fix: send the room sensor's humidity to homekit, so the tile updates
 
 ## v3.2.0 (2026-07-27)
 

@@ -295,7 +295,11 @@ export class RoomSensors extends deviceBase {
         this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.accessory.displayName} updateCharacteristic OccupancyDetected: ${this.OccupancySensor.OccupancyDetected}`)
       }
     }
-    if (this.device.thermostat?.roomsensor?.hide_humidity) {
+    // The `!` was missing here, so the humidity block only ran when the sensor
+    // was hidden - a visible room sensor never pushed a humidity change to
+    // HomeKit, the tile stayed on its initial value, and humidity automations
+    // never fired. The two blocks above are correctly negated.
+    if (!this.device.thermostat?.roomsensor?.hide_humidity) {
       if (this.HumiditySensor?.CurrentRelativeHumidity === undefined) {
         this.debugLog(`${this.sensorAccessory?.accessoryAttribute.type} ${this.accessory.displayName} CurrentRelativeHumidity: ${this.HumiditySensor?.CurrentRelativeHumidity}`)
       } else {
@@ -314,7 +318,7 @@ export class RoomSensors extends deviceBase {
     if (!this.device.thermostat?.roomsensor?.hide_occupancy) {
       this.OccupancySensor?.Service.updateCharacteristic(this.hap.Characteristic.OccupancyDetected, e)
     }
-    if (this.device.thermostat?.roomsensor?.hide_humidity) {
+    if (!this.device.thermostat?.roomsensor?.hide_humidity) {
       this.HumiditySensor?.Service?.updateCharacteristic(this.hap.Characteristic.CurrentRelativeHumidity, e)
     }
   }
