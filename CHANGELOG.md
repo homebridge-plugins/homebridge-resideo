@@ -20,6 +20,7 @@
 - fix: actually remove a service when its hide setting is turned on
 - fix: show the real firmware version on a t9 or t10, not the plugin's own version
 - fix: make the retry, stateful switch and valve type settings do what they say
+- fix: recover from a connection dropped mid-response instead of crashing the bridge
 
 ## v3.2.0 (2026-07-27)
 

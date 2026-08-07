@@ -82,6 +82,12 @@ export class NativeHttpClient implements HttpClient {
         (res) => {
           const chunks: Buffer[] = []
 
+          // The request's 'error' handler below only covers failures before the
+          // response arrives. Once the headers are in, node reports a dropped
+          // connection by erroring the response stream - with no listener here that
+          // is an uncaught exception, and the promise never settles either.
+          res.on('error', reject)
+
           res.on('data', (chunk) => {
             chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
           })
