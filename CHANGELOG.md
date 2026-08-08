@@ -25,6 +25,7 @@
 - fix: stop writing the access token into the debug log
 - fix: log the error message rather than the whole error object, which can carry the api response
 - fix: stop confirming updateRate in the log, when nothing reads it
+- fix: clamp the poll and retry delays, so a very large setting cannot make them fire every millisecond
 
 ## v3.2.0 (2026-07-27)
 

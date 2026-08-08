@@ -284,6 +284,7 @@
                           "title": "Room Sensor Thermostat Refresh Rate",
                           "type": "number",
                           "minimum": 30,
+                          "maximum": 2073600,
                           "placeholder": 360,
                           "description": "Indicates the number of seconds between polls of Resideo API.",
                           "condition": {
@@ -294,6 +295,7 @@
                           "title": "Room Sensor Thermostat Push Rate",
                           "type": "number",
                           "minimum": 30,
+                          "maximum": 2073600,
                           "placeholder": 360,
                           "description": "Indicates the number of seconds between pushes to the Resideo API.",
                           "condition": {
@@ -369,6 +371,7 @@
                           "title": "Room Sensor Refresh Rate",
                           "type": "number",
                           "minimum": 30,
+                          "maximum": 2073600,
                           "placeholder": 360,
                           "description": "Indicates the number of seconds between polls of Resideo API.",
                           "condition": {
@@ -379,6 +382,7 @@
                           "title": "Room Sensor Push Rate",
                           "type": "number",
                           "minimum": 30,
+                          "maximum": 2073600,
                           "placeholder": 360,
                           "description": "Indicates the number of seconds between pushes to the Resideo API.",
                           "condition": {
@@ -514,6 +518,7 @@
                   "title": "Device Refresh Rate",
                   "type": "number",
                   "minimum": 30,
+                  "maximum": 2073600,
                   "placeholder": 360,
                   "description": "Indicates the number of seconds between polls of Resideo API.",
                   "condition": {
@@ -564,6 +569,7 @@
             "title": "Refresh Rate",
             "type": "number",
             "minimum": 30,
+            "maximum": 2073600,
             "placeholder": 120,
             "description": "Indicates the number of seconds between polls of the Resideo service."
           },

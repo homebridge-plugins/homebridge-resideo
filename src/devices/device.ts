@@ -8,6 +8,8 @@ import type { Subscription } from 'rxjs'
 import type { ResideoPlatform } from '../Platform.HAP.js'
 import type { devicesConfig, location, resideoDevice, ResideoPlatformConfig, sensorAccessory, T9groups } from '../settings.js'
 
+import { MAX_TIMER_MS, safeTimerMs } from '../utils.js'
+
 // Devices keep their controlling class instance on the accessory itself,
 // the same pattern as the other plugins in this org
 declare module 'homebridge' {
@@ -88,7 +90,14 @@ export abstract class deviceBase {
 
   async getDeviceRateSettings(device: resideoDevice & devicesConfig): Promise<void> {
     // refreshRate
-    this.deviceRefreshRate = device.thermostat?.roomsensor?.refreshRate ?? device.thermostat?.roompriority?.refreshRate ?? device.refreshRate ?? this.platform.platformRefreshRate ?? 120
+    // Clamped in seconds here, so that every `deviceRefreshRate * 1000` below
+    // stays inside what a Node timer can hold. Over the limit a timer does not
+    // throw - it silently drops to 1 ms, so a slow poll would turn into a flood
+    // of calls at the Resideo API.
+    this.deviceRefreshRate = Math.min(
+      device.thermostat?.roomsensor?.refreshRate ?? device.thermostat?.roompriority?.refreshRate ?? device.refreshRate ?? this.platform.platformRefreshRate ?? 120,
+      MAX_TIMER_MS / 1000,
+    )
     const refreshRate = device.thermostat?.roomsensor?.refreshRate ? 'Room Sensor Config' : device.thermostat?.roompriority?.refreshRate ? 'Room Priority Config' : device.refreshRate ? 'Device Config' : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
     // updateRate used to be parsed and echoed back here, which made it look
     // accepted. Nothing has ever read it, at either level, and it is in no
@@ -107,7 +116,7 @@ export abstract class deviceBase {
     await this.debugLog(`Using ${maxRetries} maxRetries: ${this.deviceMaxRetries}`)
     // delayBetweenRetries
     this.deviceDelayBetweenRetries = device.delayBetweenRetries ?? this.platform.platformDelayBetweenRetries ?? 5
-    this.deviceDelayBetweenRetries = this.deviceDelayBetweenRetries * 1000
+    this.deviceDelayBetweenRetries = safeTimerMs(this.deviceDelayBetweenRetries * 1000)
     const delayBetweenRetries = device.delayBetweenRetries ? 'Device Config' : this.platform.platformDelayBetweenRetries ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${delayBetweenRetries} delayBetweenRetries: ${this.deviceDelayBetweenRetries}`)
   }
