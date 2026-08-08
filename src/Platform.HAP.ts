@@ -115,7 +115,10 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       this.debugLog('Executed didFinishLaunching callback')
       await this.refreshAccessToken()
       if (this.config.credentials?.accessToken) {
-        this.debugLog(`accessToken: ${this.config.credentials?.accessToken}`)
+        // Presence only. Printing the token means anyone who turns on debug to
+        // troubleshoot - exactly when this fires - and then pastes their log into
+        // a GitHub issue publishes a working credential (see #927).
+        this.debugLog(`accessToken: ${this.config.credentials?.accessToken ? 'set' : 'not set'}`)
         try {
           this.discoverDevices()
         } catch (e: any) {
@@ -209,7 +212,7 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       }
 
       this.config.credentials!.accessToken = result.access_token
-      this.debugLog(`Got access token: ${this.config.credentials!.accessToken}`)
+      this.debugLog(`Got access token: ${this.config.credentials!.accessToken ? 'yes' : 'no'}`)
       // check if the refresh token has changed
       if (result.refresh_token !== this.config.credentials!.refreshToken) {
         this.debugLog(`New refresh token: ${result.refresh_token}`)
