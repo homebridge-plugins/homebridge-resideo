@@ -24,6 +24,7 @@
 - fix: stop the token refresh and device polling when homebridge shuts down
 - fix: stop writing the access token into the debug log
 - fix: log the error message rather than the whole error object, which can carry the api response
+- fix: stop confirming updateRate in the log, when nothing reads it
 
 ## v3.2.0 (2026-07-27)
 

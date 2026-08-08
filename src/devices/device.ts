@@ -44,7 +44,6 @@ export abstract class deviceBase {
   // Config
   protected deviceLogging!: string
   protected deviceRefreshRate!: number
-  protected deviceUpdateRate!: number
   protected devicePushRate!: number
   protected deviceFirmwareVersion!: string
   protected deviceMaxRetries!: number
@@ -91,13 +90,13 @@ export abstract class deviceBase {
     // refreshRate
     this.deviceRefreshRate = device.thermostat?.roomsensor?.refreshRate ?? device.thermostat?.roompriority?.refreshRate ?? device.refreshRate ?? this.platform.platformRefreshRate ?? 120
     const refreshRate = device.thermostat?.roomsensor?.refreshRate ? 'Room Sensor Config' : device.thermostat?.roompriority?.refreshRate ? 'Room Priority Config' : device.refreshRate ? 'Device Config' : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
-    // updateRate
-    this.deviceUpdateRate = device.updateRate ?? this.platform.platformUpdateRate ?? 5
-    const updateRate = device.updateRate ? 'Device Config' : this.platform.platformUpdateRate ? 'Platform Config' : 'Default'
+    // updateRate used to be parsed and echoed back here, which made it look
+    // accepted. Nothing has ever read it, at either level, and it is in no
+    // settings schema - polling uses refreshRate and command sends use pushRate.
     // pushRate
     this.devicePushRate = device.pushRate ?? this.platform.platformPushRate ?? 0.1
     const pushRate = device.pushRate ? 'Device Config' : this.platform.platformPushRate ? 'Platform Config' : 'Default'
-    await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}, ${updateRate} updateRate: ${this.deviceUpdateRate}, ${pushRate} pushRate: ${this.devicePushRate}`)
+    await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}, ${pushRate} pushRate: ${this.devicePushRate}`)
     // maxRetries. These two were parsed, stored and logged but read nowhere, so a
     // setting the owner changed made no difference at all - every retry path was a
     // hardcoded single attempt after five seconds. They are honoured now, and the
@@ -118,7 +117,6 @@ export abstract class deviceBase {
     const properties = [
       'logging',
       'refreshRate',
-      'updateRate',
       'pushRate',
       'external',
       'retry',

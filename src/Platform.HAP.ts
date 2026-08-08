@@ -50,7 +50,6 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
   platformLogging!: options['logging']
   platformRefreshRate!: options['refreshRate']
   platformPushRate!: options['pushRate']
-  platformUpdateRate!: options['updateRate']
   platformMaxRetries: options['maxRetries']
   platformDelayBetweenRetries: options['delayBetweenRetries']
   version!: string
@@ -837,9 +836,6 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
     const refreshRate = this.config.options?.refreshRate ? 'Using Platform Config refreshRate' : 'Platform Config refreshRate Not Set'
     await this.debugLog(`${refreshRate}: ${this.platformRefreshRate}`)
     // UpdateRate
-    this.platformUpdateRate = this.config.options?.updateRate ? this.config.options.updateRate : undefined
-    const updateRate = this.config.options?.updateRate ? 'Using Platform Config updateRate' : 'Platform Config updateRate Not Set'
-    await this.debugLog(`${updateRate}: ${this.platformUpdateRate}`)
     // PushRate
     this.platformPushRate = this.config.options?.pushRate ? this.config.options.pushRate : undefined
     const pushRate = this.config.options?.pushRate ? 'Using Platform Config pushRate' : 'Platform Config pushRate Not Set'
@@ -861,7 +857,6 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       }
       platformConfig.logging = this.config.options.logging ? this.config.options.logging : undefined
       platformConfig.refreshRate = this.config.options.refreshRate ? this.config.options.refreshRate : undefined
-      platformConfig.updateRate = this.config.options.updateRate ? this.config.options.updateRate : undefined
       platformConfig.pushRate = this.config.options.pushRate ? this.config.options.pushRate : undefined
       platformConfig.maxRetries = this.config.options.maxRetries ? this.config.options.maxRetries : undefined
       platformConfig.delayBetweenRetries = this.config.options.delayBetweenRetries ? this.config.options.delayBetweenRetries : undefined

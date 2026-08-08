@@ -60,7 +60,6 @@ export interface options {
   maxRetries?: number
   delayBetweenRetries?: number
   refreshRate?: number
-  updateRate?: number
   pushRate?: number
   devices?: devicesConfig[]
 }
@@ -76,7 +75,6 @@ export interface devicesConfig extends resideoDevice {
   external?: boolean
   logging?: string
   refreshRate?: number
-  updateRate?: number
   pushRate?: number
   maxRetries?: number
   delayBetweenRetries?: number
