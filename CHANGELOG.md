@@ -1,3 +1,9 @@
+## v3.2.2 (Pending Release)
+
+### Changed
+
+- fix: keep debug warnings, errors and successes out of the log unless debug is on
+
 ## v3.2.1 (2026-08-09)
 
 ### Changed
