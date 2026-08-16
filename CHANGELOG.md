@@ -1,3 +1,9 @@
+## v3.2.3 (Pending Release)
+
+### Changed
+
+- fix(matter): pass the accessory list alone when updating a cached matter accessory
+
 ## v3.2.2 (2026-08-13)
 
 ### Changed

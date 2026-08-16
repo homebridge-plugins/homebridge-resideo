@@ -109,7 +109,17 @@ export class ResideoMatterPlatform extends ResideoPlatform {
         return
       }
 
-      const matterApi = (this.api as any).matter
+      // Deliberately typed rather than cast to `any`. The cast is what let a
+      // call to updatePlatformAccessories keep the (plugin, platform,
+      // accessories) shape of its register/unregister siblings - that one takes
+      // the accessory array on its own, so every argument landed in the wrong
+      // parameter and the update silently did nothing. Typed, the compiler
+      // catches it.
+      const matterApi = this.api.matter
+      if (!matterApi) {
+        this.debugLog('Matter API is no longer available – falling back to HAP device discovery.')
+        return super.discoverDevices()
+      }
       const accessories: any[] = []
 
       for (const location of locations) {
@@ -139,7 +149,7 @@ export class ResideoMatterPlatform extends ResideoPlatform {
             this.infoLog(`Restoring existing Matter accessory from cache: ${existingAccessory.displayName}`)
             existingAccessory.context.device = device
             existingAccessory.context.location = location
-            await matterApi.updatePlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory])
+            await matterApi.updatePlatformAccessories([existingAccessory])
             this.matterAccessories.set(uuid, existingAccessory)
           } else {
             this.debugLog(`Creating new Matter accessory for: ${displayName} (${device.deviceClass})`)
