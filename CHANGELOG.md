@@ -3,6 +3,7 @@
 ### Changed
 
 - fix(matter): pass the accessory list alone when updating a cached matter accessory
+- chore(deps): dependency updates
 
 ## v3.2.2 (2026-08-13)
 
