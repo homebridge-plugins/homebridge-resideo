@@ -629,7 +629,7 @@
             ]
           }
         },
-        "required": ["logging"]
+        "required": ["logging", "convertUnits"]
       }
     },
     "required": ["name", "credentials"]

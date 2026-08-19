@@ -1,3 +1,9 @@
+## v3.2.4 (Pending Release)
+
+### Changed
+
+- fix(schema): require the temperature unit override to drop the duplicate unset entry
+
 ## v3.2.3 (2026-08-16)
 
 ### Changed
