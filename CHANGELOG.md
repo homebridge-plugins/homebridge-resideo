@@ -2,7 +2,7 @@
 
 ### Changed
 
-- ci: update github actions to their latest versions
+- ci: update github actions to their latest versions (#942)
 
 ## v3.2.4 (2026-10-18)
 
