@@ -16,6 +16,7 @@ import type { Logging } from 'homebridge'
 
 import { describe, expect, it, vi } from 'vitest'
 
+import { deviceBase } from './devices/device.js'
 import { ResideoPlatform } from './Platform.HAP.js'
 
 function makeLog(): Logging {
@@ -148,5 +149,53 @@ describe('a default install, from the settings it actually works out', () => {
 
     expect(host.platformLogging).toBe('debug')
     expect(log.warn).toHaveBeenCalled()
+  })
+})
+
+/**
+ * The config UI now saves 'default' for the "Default" logging choice, because
+ * a required field that defaults to an empty string always failed the UI's
+ * validation. 'default' has to behave exactly as an empty or missing value
+ * always has: the platform follows Homebridge's debug setting and a device
+ * uses the platform's level. Room sensors and room priority log through their
+ * thermostat's device settings, so they follow the same path.
+ */
+describe('the default logging choice', () => {
+  async function platformLoggingFor(options: Record<string, unknown>) {
+    const host: any = Object.create(ResideoPlatform.prototype)
+    host.log = makeLog()
+    host.config = { options }
+    await host.getPlatformLogSettings()
+    return host.platformLogging
+  }
+
+  async function deviceLoggingFor(platformLogging: string, device: Record<string, unknown>) {
+    const host: any = Object.create(deviceBase.prototype)
+    host.log = makeLog()
+    host.platform = { platformLogging }
+    host.accessory = { displayName: 'Hallway' }
+    host.device = { deviceType: 'Thermostat' }
+    await host.getDeviceLogSettings(device)
+    return host.deviceLogging
+  }
+
+  it('resolves the plugin level the same as an empty or missing one', async () => {
+    const missing = await platformLoggingFor({})
+
+    expect(await platformLoggingFor({ logging: 'default' })).toBe(missing)
+    expect(await platformLoggingFor({ logging: '' })).toBe(missing)
+    expect(missing).toBe('debugMode')
+  })
+
+  it('makes a device use the plugin logging level, as a missing value does', async () => {
+    for (const platformLogging of ['debugMode', 'standard', 'debug', 'none']) {
+      expect(await deviceLoggingFor(platformLogging, { logging: 'default' }))
+        .toBe(await deviceLoggingFor(platformLogging, {}))
+      expect(await deviceLoggingFor(platformLogging, {})).toBe(platformLogging)
+    }
+  })
+
+  it('still lets a device override the plugin logging level', async () => {
+    expect(await deviceLoggingFor('debugMode', { logging: 'none' })).toBe('none')
   })
 })

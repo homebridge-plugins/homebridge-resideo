@@ -93,7 +93,9 @@ export interface thermostat {
   roompriority?: roompriority
 }
 
-export type ConvertUnitsOption = '' | 'fahrenheit' | 'celsius'
+// 'auto' is what the config UI saves for "Automatic"; like an empty or missing
+// value, it uses the unit the thermostat reports.
+export type ConvertUnitsOption = '' | 'auto' | 'fahrenheit' | 'celsius'
 
 export type ResideoFanMode = 'Auto' | 'On' | 'Circulate'
 

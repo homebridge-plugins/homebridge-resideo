@@ -34,6 +34,15 @@ describe('toCelsiusWithOverride', () => {
     expect(toCelsiusWithOverride(20, 1, 'celsius')).toBe(20)
     expect(toCelsiusWithOverride(25, 0, 'celsius')).toBe(25)
   })
+
+  it('treats the automatic choice the same as no override', () => {
+    // 'auto' is what the config UI saves for "Automatic" - it must use the
+    // unit the thermostat reports, exactly as an empty or missing value does.
+    for (const [value, unit] of [[25, 0], [68, 1]]) {
+      expect(toCelsiusWithOverride(value, unit, 'auto')).toBe(toCelsiusWithOverride(value, unit))
+      expect(toCelsiusWithOverride(value, unit, '')).toBe(toCelsiusWithOverride(value, unit))
+    }
+  })
 })
 
 describe('createPlatformProxy', () => {
