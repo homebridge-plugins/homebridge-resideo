@@ -80,7 +80,9 @@ export class Valve extends deviceBase {
           // The http client attaches the parsed API response to the error, so
           // stringifying the whole thing publishes the response body - and omits
           // `message`, which is not an own property. Log the message instead.
-          this.errorLog(`${device.deviceClass} ${accessory.displayName}: doValveUpdate pushChanges: ${e instanceof Error ? e.message : String(e)}`)
+          this.errorLog(`${device.deviceClass} ${accessory.displayName}: doValveUpdate pushChanges: ${e instanceof Error
+            ? e.message
+            : String(e)}`)
         }
         interval(this.deviceRefreshRate * 500)
           .pipe(skipWhile(() => this.valveUpdateInProgress), take(1))
@@ -138,7 +140,9 @@ export class Valve extends deviceBase {
   async pushChanges(): Promise<void> {
     try {
       const payload: payload = {
-        state: this.Valve.Active === this.hap.Characteristic.Active.ACTIVE ? 'open' : 'closed',
+        state: this.Valve.Active === this.hap.Characteristic.Active.ACTIVE
+          ? 'open'
+          : 'closed',
       }
 
       await this.platform.httpClient.post(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, payload, {

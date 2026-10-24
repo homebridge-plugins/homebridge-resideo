@@ -214,7 +214,12 @@ export class RoomSensors extends deviceBase {
   async parseStatus(): Promise<void> {
     // Get the accessory value
     const accessoryValue = this.sensorAccessory?.accessoryValue as accessoryValue
-      ?? { batteryStatus: 'Ok', indoorTemperature: 20, indoorHumidity: 50, occupancyDet: false }
+      ?? {
+        batteryStatus: 'Ok',
+        indoorTemperature: 20,
+        indoorHumidity: 50,
+        occupancyDet: false,
+      }
 
     // Set Room Sensor State
     if (accessoryValue.batteryStatus.startsWith('Ok')) {

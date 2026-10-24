@@ -36,7 +36,9 @@ function asSeenByUi(schema: JsonSchema | undefined, data: unknown): unknown {
   }
   const shaped: Record<string, unknown> = { ...(data as Record<string, unknown>) }
   for (const [key, sub] of Object.entries(schema?.properties ?? {})) {
-    const value = Object.hasOwn(shaped, key) ? shaped[key] : sub.default
+    const value = Object.hasOwn(shaped, key)
+      ? shaped[key]
+      : sub.default
     if (value === undefined || value === '') {
       delete shaped[key]
     } else {
@@ -57,7 +59,10 @@ function requiredWithEmptyDefault(schema: JsonSchema, path: string): string[] {
     .map(key => `${path}.${key}`)
   const nested = Object.entries(schema.properties ?? {})
     .flatMap(([key, sub]) => requiredWithEmptyDefault(sub.items ?? sub, `${path}.${key}`))
-  return [...own, ...nested]
+  return [
+    ...own,
+    ...nested,
+  ]
 }
 
 const credentials = {
@@ -85,7 +90,13 @@ describe('config.schema.json as the config UI sees it', () => {
   })
 
   it('accepts a thermostat and its room sensors that leave their logging levels at their defaults', () => {
-    expect(uiErrors({ name: 'Resideo', credentials, options: { devices: [thermostat] } })).toEqual([])
+    expect(uiErrors({
+      name: 'Resideo',
+      credentials,
+      options: {
+        devices: [thermostat],
+      },
+    })).toEqual([])
   })
 
   it('accepts the default choices once they have been saved', () => {
@@ -95,14 +106,16 @@ describe('config.schema.json as the config UI sees it', () => {
       options: {
         logging: 'default',
         convertUnits: 'auto',
-        devices: [{
-          ...thermostat,
-          logging: 'default',
-          thermostat: {
-            roompriority: { ...thermostat.thermostat.roompriority, logging: 'default' },
-            roomsensor: { logging: 'default' },
+        devices: [
+          {
+            ...thermostat,
+            logging: 'default',
+            thermostat: {
+              roompriority: { ...thermostat.thermostat.roompriority, logging: 'default' },
+              roomsensor: { logging: 'default' },
+            },
           },
-        }],
+        ],
       },
     })).toEqual([])
   })

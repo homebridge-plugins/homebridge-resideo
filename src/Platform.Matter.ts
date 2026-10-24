@@ -130,8 +130,14 @@ export class ResideoMatterPlatform extends ResideoPlatform {
 
         const devices = configDevices
           ? this.mergeByDeviceID(
-              deviceLists.map((device: any) => ({ ...device, deviceID: String(device.deviceID).trim() })),
-              configDevices.map((device: any) => ({ ...device, deviceID: String(device.deviceID).trim() })),
+              deviceLists.map((device: any) => ({
+                ...device,
+                deviceID: String(device.deviceID).trim(),
+              })),
+              configDevices.map((device: any) => ({
+                ...device,
+                deviceID: String(device.deviceID).trim(),
+              })),
             )
           : deviceLists.slice()
 

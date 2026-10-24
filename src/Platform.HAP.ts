@@ -626,7 +626,9 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
 
   async registerDevice(device: resideoDevice & devicesConfig) {
     let registerDevice: boolean
-    this.debugLog(`Device: ${device.userDefinedDeviceName} hide_device: ${device.hide_device}${device.deviceClass === 'Thermostat' ? `, hide_roomsensor: ${device.thermostat?.roomsensor?.hide_roomsensor}, roompriority: ${device.thermostat?.roompriority?.deviceType}` : ''}`)
+    this.debugLog(`Device: ${device.userDefinedDeviceName} hide_device: ${device.hide_device}${device.deviceClass === 'Thermostat'
+      ? `, hide_roomsensor: ${device.thermostat?.roomsensor?.hide_roomsensor}, roompriority: ${device.thermostat?.roompriority?.deviceType}`
+      : ''}`)
     if (!device.thermostat?.roomsensor?.hide_roomsensor && device.deviceClass === 'Thermostat' && !device.hide_device) {
       registerDevice = true
       this.debugSuccessLog(`Device: ${device.userDefinedDeviceName} deviceID: ${device.deviceID}, registerDevice: ${registerDevice}, hide_roomsensor: ${device.thermostat?.roomsensor?.hide_roomsensor}`)
@@ -828,7 +830,9 @@ export class ResideoPlatform implements DynamicPlatformPlugin {
       : 'debugMode'
     // 'default' (what the config UI saves) is not one of the three above, so it
     // lands on 'debugMode' exactly as an empty or missing value does.
-    const logging = this.config.options?.logging && this.config.options.logging !== 'default' ? 'Platform Config' : 'Default'
+    const logging = this.config.options?.logging && this.config.options.logging !== 'default'
+      ? 'Platform Config'
+      : 'Default'
     await this.debugLog(`Using ${logging} Logging: ${this.platformLogging}`)
   }
 

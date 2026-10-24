@@ -117,7 +117,11 @@ describe('a default install, from the settings it actually works out', () => {
     const log = makeLog()
     const host: any = Object.create(ResideoPlatform.prototype)
     host.log = log
-    host.config = { options: configLogging ? { logging: configLogging } : {} }
+    host.config = {
+      options: configLogging
+        ? { logging: configLogging }
+        : {},
+    }
     return { host, log }
   }
 
@@ -188,7 +192,12 @@ describe('the default logging choice', () => {
   })
 
   it('makes a device use the plugin logging level, as a missing value does', async () => {
-    for (const platformLogging of ['debugMode', 'standard', 'debug', 'none']) {
+    for (const platformLogging of [
+      'debugMode',
+      'standard',
+      'debug',
+      'none',
+    ]) {
       expect(await deviceLoggingFor(platformLogging, { logging: 'default' }))
         .toBe(await deviceLoggingFor(platformLogging, {}))
       expect(await deviceLoggingFor(platformLogging, {})).toBe(platformLogging)

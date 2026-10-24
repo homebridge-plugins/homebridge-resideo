@@ -28,8 +28,24 @@ describe('settings', () => {
   })
 
   it('should have correct HttpMethod types', () => {
-    const methods: settings.HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
-    expect(methods).toEqual(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'])
+    const methods: settings.HttpMethod[] = [
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'PATCH',
+      'OPTIONS',
+      'HEAD',
+    ]
+    expect(methods).toEqual([
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'PATCH',
+      'OPTIONS',
+      'HEAD',
+    ])
   })
 
   it('should have correct default ResideoPlatformConfig', () => {
