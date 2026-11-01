@@ -20,6 +20,7 @@ Homebridge plugin to integrate Resideo (Honeywell Home) devices into HomeKit
 - This plugin allows you to view and control your [Resideo](https://www.resideo.com) (Honeywell Home) devices within HomeKit. The plugin:
   - requires a (free) Resideo developer account to work - this is separate from the Resideo account you use in the Resideo app
   - connects to the Resideo cloud to discover and control your devices
+  - uses Matter automatically when Matter is turned on in Homebridge, and uses HomeKit (HAP) otherwise
 
 ### Prerequisites
 
@@ -36,15 +37,15 @@ Homebridge plugin to integrate Resideo (Honeywell Home) devices into HomeKit
 
 ### Supported Devices
 
-- [T10 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t10-pro-smart-thermostat-with-redlinkr-room-sensor-thx321wfs2001w-u/) - already HomeKit certified
-- [T9 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t9-smart-thermostat-with-sensor-rcht9610wfsw2003-u/) - already HomeKit certified
-  - [T9 Smart Roomsensors](https://www.resideo.com/us/en/products/air/thermostat-accessories/t9-smart-sensor-rchtsensor-1pk-u/)
-- [T6 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t6-pro-smart-thermostat-multi-stage-3-heat-2-cool-th6320wf2003-u/) - already HomeKit certified
-- [T5 Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/t5-smart-thermostat-with-c-wire-adapter-rcht8612wf2005-u/) - already HomeKit certified
-- [Round Thermostat](https://www.resideo.com/us/en/products/air/thermostats/wifi-thermostats/the-round-smart-thermostat-rch9310wf5003-u/) - already HomeKit certified
+- T10 Thermostat - already HomeKit certified
+- T9 Thermostat - already HomeKit certified
+  - T9 Smart Roomsensors
+- T6 Thermostat - already HomeKit certified
+- T5 Thermostat - already HomeKit certified
+- Round Thermostat - already HomeKit certified
 - Some Total Comfort Control thermostats
   - Pushing commands may not be supported on some.
-- [WiFi Water Leak & Freeze Detector](https://www.resideo.com/us/en/products/water/spot-leak-detection/wifi-water-leak-freeze-detector-rchw3610wf1001-u/)
+- WiFi Water Leak & Freeze Detector
 - Water Shutoff Valves
 
 ### Help/About
