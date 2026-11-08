@@ -6,6 +6,7 @@
 - fix(schema): give the default logging and unit choices a value, so the ui stops flagging them
 - docs: remove dead product links and mention matter support in the readme
 - chore: leave CLAUDE.md out of the published package
+- fix: read leak detectors from the location list when their own status is missing (#946)
 
 ## v3.2.4 (2026-10-18)
 

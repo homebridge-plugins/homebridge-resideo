@@ -49,6 +49,7 @@ export class LeakSensor extends deviceBase {
 
   // Sensor Update
   SensorUpdateInProgress!: boolean
+  statusFromLocations = false
   doSensorUpdate!: Subject<void>
 
   constructor(
@@ -265,15 +266,36 @@ export class LeakSensor extends deviceBase {
    */
   async refreshStatus(): Promise<void> {
     try {
-      const device: any = (
-        await this.platform.httpClient.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
-          params: {
-            locationId: this.location.locationID,
-          },
-        })
-      ).data
+      let device: any
+      if (!this.statusFromLocations) {
+        try {
+          device = (
+            await this.platform.httpClient.get(`${DeviceURL}/waterLeakDetectors/${this.device.deviceID}`, {
+              params: {
+                locationId: this.location.locationID,
+              },
+            })
+          ).data
+        } catch (e: any) {
+          // Some detectors, like the L1 set up in the First Alert app, have no
+          // status of their own (404), but the account's location list carries
+          // the same readings, so read it from there from now on (#946)
+          if (e?.status !== 404) {
+            throw e
+          }
+          this.statusFromLocations = true
+          this.debugLog(`${this.device.deviceClass} ${this.accessory.displayName} has no status of its own, reading it from the location list instead`)
+        }
+      }
+      if (this.statusFromLocations) {
+        device = await this.statusFromLocationList()
+      }
       this.debugLog(`(refreshStatus) ${device.deviceClass} device: ${JSON.stringify(device)}`)
-      this.device = device
+      // Keep this device's own settings from the config, like which sensors are hidden
+      this.device = {
+        ...this.device,
+        ...device,
+      }
       await this.parseStatus()
       await this.updateHomeKitCharacteristics()
     } catch (e: any) {
@@ -290,6 +312,20 @@ export class LeakSensor extends deviceBase {
       this.resideoAPIError(e, action)
       this.apiError(e)
     }
+  }
+
+  /**
+   * Finds this detector in the account's location list
+   */
+  async statusFromLocationList(): Promise<resideoDevice> {
+    const locations = await this.platform.discoverlocations() ?? []
+    const device = locations
+      .flatMap(location => location.devices ?? [])
+      .find(found => String(found.deviceID) === String(this.device.deviceID))
+    if (!device) {
+      throw new Error(`${this.device.deviceClass} ${this.accessory.displayName} is missing from the location list`)
+    }
+    return device
   }
 
   /**
