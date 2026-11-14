@@ -7,6 +7,7 @@
 - docs: remove dead product links and mention matter support in the readme
 - chore: leave CLAUDE.md out of the published package
 - fix: read leak detectors from the location list when their own status is missing (#946)
+- ci: publish releases with node.js v26, the current lts
 
 ## v3.2.4 (2026-10-18)
 
