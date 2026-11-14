@@ -73,7 +73,9 @@ export class NativeHttpClient implements HttpClient {
     }
 
     return await new Promise<HttpResponse<T>>((resolve, reject) => {
-      const req = (target.protocol === 'https:' ? httpsRequest : httpRequest)(
+      const req = (target.protocol === 'https:'
+        ? httpsRequest
+        : httpRequest)(
         target,
         {
           method,
@@ -89,7 +91,9 @@ export class NativeHttpClient implements HttpClient {
           res.on('error', reject)
 
           res.on('data', (chunk) => {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+            chunks.push(Buffer.isBuffer(chunk)
+              ? chunk
+              : Buffer.from(chunk))
           })
 
           res.on('end', () => {
@@ -100,7 +104,9 @@ export class NativeHttpClient implements HttpClient {
 
             try {
               const parsed = responseType === 'json'
-                ? (hasBody ? JSON.parse(raw) : ({} as unknown))
+                ? (hasBody
+                    ? JSON.parse(raw)
+                    : ({} as unknown))
                 : raw
 
               if (status >= 400) {

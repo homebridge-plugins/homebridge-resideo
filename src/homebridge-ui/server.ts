@@ -98,7 +98,9 @@ export class PluginUiServer extends HomebridgePluginUiServer {
                     res.end(`<strong>Could not get a token:</strong><br>${escapeHtml(reason)}<br><br>Close this window and start again`)
                   }
                 } catch (err) {
-                  const reason = err instanceof Error ? err.message : String(err)
+                  const reason = err instanceof Error
+                    ? err.message
+                    : String(err)
                   res.end(`<strong>An error occurred:</strong><br>${escapeHtml(reason)}<br><br>Close this window and start again`)
                 }
               } else {

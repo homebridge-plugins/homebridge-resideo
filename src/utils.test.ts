@@ -38,7 +38,10 @@ describe('toCelsiusWithOverride', () => {
   it('treats the automatic choice the same as no override', () => {
     // 'auto' is what the config UI saves for "Automatic" - it must use the
     // unit the thermostat reports, exactly as an empty or missing value does.
-    for (const [value, unit] of [[25, 0], [68, 1]]) {
+    for (const [value, unit] of [
+      [25, 0],
+      [68, 1],
+    ]) {
       expect(toCelsiusWithOverride(value, unit, 'auto')).toBe(toCelsiusWithOverride(value, unit))
       expect(toCelsiusWithOverride(value, unit, '')).toBe(toCelsiusWithOverride(value, unit))
     }
@@ -70,7 +73,9 @@ describe('createPlatformProxy', () => {
       isMatterAvailable: vi.fn().mockReturnValue(true),
       isMatterEnabled: vi.fn().mockReturnValue(true),
     }
-    const config = { options: { preferMatter: true, enableMatter: true } }
+    const config = {
+      options: { preferMatter: true, enableMatter: true },
+    }
     const Proxy = createPlatformProxy(HAPPlatform, MatterPlatform)
     // eslint-disable-next-line no-new
     new Proxy({}, config, api)
@@ -87,7 +92,9 @@ describe('createPlatformProxy', () => {
       isMatterAvailable: vi.fn().mockReturnValue(true),
       isMatterEnabled: vi.fn().mockReturnValue(true),
     }
-    const config = { options: { preferMatter: true, enableMatter: false } }
+    const config = {
+      options: { preferMatter: true, enableMatter: false },
+    }
     const Proxy = createPlatformProxy(HAPPlatform, MatterPlatform)
     // eslint-disable-next-line no-new
     new Proxy({}, config, api)
@@ -104,7 +111,9 @@ describe('createPlatformProxy', () => {
       isMatterAvailable: vi.fn().mockReturnValue(true),
       isMatterEnabled: vi.fn().mockReturnValue(true),
     }
-    const config = { options: { preferMatter: false, enableMatter: true } }
+    const config = {
+      options: { preferMatter: false, enableMatter: true },
+    }
     const Proxy = createPlatformProxy(HAPPlatform, MatterPlatform)
     // eslint-disable-next-line no-new
     new Proxy({}, config, api)

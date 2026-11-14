@@ -90,7 +90,9 @@ describe('resideoPlatform', () => {
   })
 
   it('should discover locations', async () => {
-    const mockLocations = [{ locationID: '1', name: 'Location 1', devices: [] }]
+    const mockLocations = [
+      { locationID: '1', name: 'Location 1', devices: [] },
+    ]
     vi.spyOn(platform.httpClient, 'get').mockResolvedValue({ data: mockLocations, status: 200, headers: {} })
 
     const locations = await platform.discoverlocations()

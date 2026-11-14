@@ -85,9 +85,13 @@ export abstract class deviceBase {
   async getDeviceLogSettings(device: resideoDevice & devicesConfig): Promise<void> {
     // The config UI saves 'default' for "use the plugin logging level", which
     // must inherit exactly as a missing value always has.
-    const deviceLogging = device.logging === 'default' ? undefined : device.logging
+    const deviceLogging = device.logging === 'default'
+      ? undefined
+      : device.logging
     this.deviceLogging = deviceLogging ?? this.platform.platformLogging ?? 'standard'
-    const logging = deviceLogging ? 'Device Config' : this.platform.platformLogging ? 'Platform Config' : 'Default'
+    const logging = deviceLogging
+      ? 'Device Config'
+      : this.platform.platformLogging ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${logging} Logging: ${this.deviceLogging}`)
   }
 
@@ -101,13 +105,21 @@ export abstract class deviceBase {
       device.thermostat?.roomsensor?.refreshRate ?? device.thermostat?.roompriority?.refreshRate ?? device.refreshRate ?? this.platform.platformRefreshRate ?? 120,
       MAX_TIMER_MS / 1000,
     )
-    const refreshRate = device.thermostat?.roomsensor?.refreshRate ? 'Room Sensor Config' : device.thermostat?.roompriority?.refreshRate ? 'Room Priority Config' : device.refreshRate ? 'Device Config' : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
+    const refreshRate = device.thermostat?.roomsensor?.refreshRate
+      ? 'Room Sensor Config'
+      : device.thermostat?.roompriority?.refreshRate
+        ? 'Room Priority Config'
+        : device.refreshRate
+          ? 'Device Config'
+          : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
     // updateRate used to be parsed and echoed back here, which made it look
     // accepted. Nothing has ever read it, at either level, and it is in no
     // settings schema - polling uses refreshRate and command sends use pushRate.
     // pushRate
     this.devicePushRate = device.pushRate ?? this.platform.platformPushRate ?? 0.1
-    const pushRate = device.pushRate ? 'Device Config' : this.platform.platformPushRate ? 'Platform Config' : 'Default'
+    const pushRate = device.pushRate
+      ? 'Device Config'
+      : this.platform.platformPushRate ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}, ${pushRate} pushRate: ${this.devicePushRate}`)
     // maxRetries. These two were parsed, stored and logged but read nowhere, so a
     // setting the owner changed made no difference at all - every retry path was a
@@ -115,12 +127,16 @@ export abstract class deviceBase {
     // defaults are what that hardcoded behaviour was, so nothing changes for
     // anyone who has not set them.
     this.deviceMaxRetries = device.maxRetries ?? this.platform.platformMaxRetries ?? 1
-    const maxRetries = device.maxRetries ? 'Device Config' : this.platform.platformMaxRetries ? 'Platform Config' : 'Default'
+    const maxRetries = device.maxRetries
+      ? 'Device Config'
+      : this.platform.platformMaxRetries ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${maxRetries} maxRetries: ${this.deviceMaxRetries}`)
     // delayBetweenRetries
     this.deviceDelayBetweenRetries = device.delayBetweenRetries ?? this.platform.platformDelayBetweenRetries ?? 5
     this.deviceDelayBetweenRetries = safeTimerMs(this.deviceDelayBetweenRetries * 1000)
-    const delayBetweenRetries = device.delayBetweenRetries ? 'Device Config' : this.platform.platformDelayBetweenRetries ? 'Platform Config' : 'Default'
+    const delayBetweenRetries = device.delayBetweenRetries
+      ? 'Device Config'
+      : this.platform.platformDelayBetweenRetries ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${delayBetweenRetries} delayBetweenRetries: ${this.deviceDelayBetweenRetries}`)
   }
 
