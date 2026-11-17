@@ -1,3 +1,9 @@
+## v3.2.6 (Pending Release)
+
+### Changed
+
+- fix: show the open leak alarm and the humidity of l1 leak detectors (#946)
+
 ## v3.2.5 (2026-11-14)
 
 ### Changed

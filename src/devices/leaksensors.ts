@@ -172,7 +172,7 @@ export class LeakSensor extends deviceBase {
       } else {
         this.debugLog(`${this.device.deviceType}: ${accessory.displayName} Humidity Sensor Service Not Found`)
       }
-    } else if (device.indoorHumidity) {
+    } else if (hasHumidityReading(device)) {
       this.debugLog(`${device.deviceClass} ${accessory.displayName} Add Humidity Sensor Service`)
       accessory.context.HumiditySensor = accessory.context.HumiditySensor ?? {}
       this.HumiditySensor = {
@@ -232,8 +232,8 @@ export class LeakSensor extends deviceBase {
         // Active
         this.LeakSensor.StatusActive = this.device.hasDeviceCheckedIn
 
-        // LeakDetected
-        if (this.device.waterPresent === true) {
+        // LeakDetected: some detectors, like the L1, keep waterPresent false and report the leak as an open alarm (#946)
+        if (this.device.waterPresent === true || hasOpenLeakAlarm(this.device)) {
           this.LeakSensor.LeakDetected = this.hap.Characteristic.LeakDetected.LEAK_DETECTED
         } else {
           this.LeakSensor.LeakDetected = this.hap.Characteristic.LeakDetected.LEAK_NOT_DETECTED
@@ -390,4 +390,27 @@ export class LeakSensor extends deviceBase {
       this.HumiditySensor?.Service.updateCharacteristic(this.hap.Characteristic.CurrentRelativeHumidity, e)
     }
   }
+}
+
+/**
+ * Whether the detector reports a humidity reading. The L1 has no indoorHumidity,
+ * only currentSensorReadings.humidity, so the humidity service was never added (#946).
+ */
+export function hasHumidityReading(device: { indoorHumidity?: number, currentSensorReadings?: { humidity?: number } }): boolean {
+  return typeof device.indoorHumidity === 'number' || typeof device.currentSensorReadings?.humidity === 'number'
+}
+
+/**
+ * Whether the detector has a water leak alarm which is not resolved yet, like
+ * `{ "Type": "WaterLeak", "Resolved": null }` (#946).
+ */
+export function hasOpenLeakAlarm(device: { currentAlarms?: unknown }): boolean {
+  if (!Array.isArray(device.currentAlarms)) {
+    return false
+  }
+  return device.currentAlarms.some((alarm: Record<string, unknown> | null) => {
+    const type = alarm?.Type ?? alarm?.type
+    const resolved = alarm?.Resolved ?? alarm?.resolved
+    return typeof type === 'string' && /leak/i.test(type) && (resolved === null || resolved === undefined)
+  })
 }

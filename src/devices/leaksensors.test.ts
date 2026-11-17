@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { LeakSensor } from './leaksensors.js'
+import { hasHumidityReading, LeakSensor } from './leaksensors.js'
 
 /**
  * Some leak detectors, like the L1 set up in the First Alert app, get a 404
@@ -94,5 +94,100 @@ describe('a leak detector with no status of its own', () => {
 
     expect(leak.platform.discoverlocations).not.toHaveBeenCalled()
     expect(leak.apiError).toHaveBeenCalled()
+  })
+})
+
+/** A leak sensor with only what parseStatus uses, reading the given device. */
+function parsing(device: Record<string, unknown>) {
+  const leak = Object.create(LeakSensor.prototype) as LeakSensor & Record<string, any>
+  Object.assign(leak, {
+    accessory: { displayName: 'Leak Detector Bathroom' },
+    device: {
+      deviceClass: 'LeakDetector',
+      batteryRemaining: 88.1,
+      hasDeviceCheckedIn: true,
+      ...device,
+    },
+    hap: {
+      Characteristic: {
+        StatusLowBattery: { BATTERY_LEVEL_LOW: 1, BATTERY_LEVEL_NORMAL: 0 },
+        LeakDetected: { LEAK_DETECTED: 1, LEAK_NOT_DETECTED: 0 },
+      },
+    },
+    Battery: {
+      Service: {
+        getCharacteristic: () => ({
+          updateValue: vi.fn(),
+        }),
+      },
+    },
+    LeakSensor: {},
+    debugLog: vi.fn(),
+  })
+  return leak
+}
+
+describe('a leak reported as an alarm (#946)', () => {
+  const leakAlarm = {
+    DeviceId: 'x',
+    AlarmId: 'y',
+    Type: 'WaterLeak',
+    Created: '2026-11-16T23:03:44',
+    Resolved: null,
+  }
+
+  it('is a leak while the alarm is open, even with waterPresent false', async () => {
+    const leak = parsing({
+      waterPresent: false,
+      currentAlarms: [leakAlarm],
+    })
+
+    await leak.parseStatus()
+
+    expect(leak.LeakSensor.LeakDetected).toBe(1)
+  })
+
+  it('is no leak once the alarm is resolved', async () => {
+    const leak = parsing({
+      waterPresent: false,
+      currentAlarms: [
+        { ...leakAlarm, Resolved: '2026-11-17T08:00:00' },
+      ],
+    })
+
+    await leak.parseStatus()
+
+    expect(leak.LeakSensor.LeakDetected).toBe(0)
+  })
+
+  it('is no leak for an open alarm of another kind', async () => {
+    const leak = parsing({
+      waterPresent: false,
+      currentAlarms: [
+        { ...leakAlarm, Type: 'LowBattery' },
+      ],
+    })
+
+    await leak.parseStatus()
+
+    expect(leak.LeakSensor.LeakDetected).toBe(0)
+  })
+
+  it('still trusts waterPresent', async () => {
+    const leak = parsing({ waterPresent: true, currentAlarms: [] })
+
+    await leak.parseStatus()
+
+    expect(leak.LeakSensor.LeakDetected).toBe(1)
+  })
+})
+
+describe('the humidity sensor of a leak detector (#946)', () => {
+  it('is added for a detector which only has currentSensorReadings, like the L1', () => {
+    expect(hasHumidityReading(listed)).toBe(true)
+  })
+
+  it('is not added for a detector without any humidity reading', () => {
+    expect(hasHumidityReading({ currentSensorReadings: {} } as never)).toBe(false)
   })
 })

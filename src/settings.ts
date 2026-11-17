@@ -224,6 +224,7 @@ export interface resideoDevice {
   deviceRegistrationDate?: Date
   indoorHumidityStatus?: string
   waterPresent: boolean
+  currentAlarms?: unknown[]
   currentSensorReadings: CurrentSensorReadings
   batteryRemaining: number
   isRegistered: boolean
